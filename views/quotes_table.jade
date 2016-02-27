@@ -1,0 +1,51 @@
+table(id='stocksTable', class='stocksTable')
+  tr#head
+    th(width='14px')
+    th(width='26px') 标记 
+    th(width='75px') 股票名称
+    th(width='75px') 股票代码
+    th(width='66px') 涨跌幅
+    th(width='63px') 当前价
+    th(width='50px') 涨跌价
+    th(width='63px') 今开价
+    th(width='63px') 昨收价
+    th(width='63px') 最高价
+    th(width='63px') 最低价
+  tr#template.templateRow
+    td(class='dragHandle',title='拖动')
+    td
+      div(class='flag',title='标记股票')
+    td
+      div(style='cursor: pointer; position: relative;',title='点击修改')
+        span(class='stockName')
+        input(id='stockName',type='text')
+    td
+      div
+        span(class='stockCode',style='cursor: pointer;',title='点击行情')
+    td
+      div
+        span(class='stockChangeRate')
+    td
+      div
+        span(class='stockPrice')
+    td
+      div
+        span(class='stockChangeAmt')
+    td
+      div
+        span(class='stockOpenPrice')
+    td
+      div
+        span(class='stockClosePrice')
+    td
+      div
+        span(class='stockMaxPrice')
+    td
+      div
+        span(class='stockMinPrice')
+
+div(id='custom-stock-control',class='custom-stock-control')
+  button(id='btnNewStock') 新股票
+  button(id='btnLoadStock') 刷新
+  label 注：如果输入的股票不能自动提示，直接填股票代码，如:sh600111, sz002001
+  button(id='btnSaveStock') 保存自选股信息
