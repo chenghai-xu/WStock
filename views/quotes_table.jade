@@ -1,7 +1,7 @@
 table(id='stocksTable', class='stocksTable')
   tr#head
-    th(width='14px')
-    th(width='26px') 标记 
+    //th(width='14px')
+    //th(width='26px') 标记 
     th(width='75px') 股票名称
     th(width='75px') 股票代码
     th(width='66px') 涨跌幅
@@ -11,10 +11,11 @@ table(id='stocksTable', class='stocksTable')
     th(width='63px') 昨收价
     th(width='63px') 最高价
     th(width='63px') 最低价
+    th(width='20px') 操作
   tr#template.templateRow
-    td(class='dragHandle',title='拖动')
-    td
-      div(class='flag',title='标记股票')
+    //td(class='dragHandle',title='拖动')
+    //td
+    //  div(class='flag',title='标记股票')
     td
       div(style='cursor: pointer; position: relative;',title='点击修改')
         span(class='stockName')
@@ -43,6 +44,9 @@ table(id='stocksTable', class='stocksTable')
     td
       div
         span(class='stockMinPrice')
+    td 
+      div(class='delete',title="删除股票")
+        br
 
 div(id='custom-stock-control',class='custom-stock-control')
   button(id='btnNewStock') 新股票
