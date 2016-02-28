@@ -41,7 +41,7 @@ function saveOptions()
 	//backgroundPage.reloadSock = true;
 	//backgroundPage.refreshStocks();
 	
-	initializeStockRow();
+	//initializeStockRow();
 	
 	showMessage("保存成功");
 }
