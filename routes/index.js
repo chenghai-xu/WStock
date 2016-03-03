@@ -1,5 +1,5 @@
 var controllers = require('../users/controlers/index');
-var quotes = require('./quotes');
+var quotes = require('../quotes/quotes');
 module.exports = function (app) {
   app.get('/', index);
   app.get('/quotes', quotes.live);
