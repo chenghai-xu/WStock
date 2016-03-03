@@ -1,9 +1,5 @@
-var express = require('express');
 var http = require('http');
-var router = express.Router();
-
-/* GET users listing. */
-router.get('/', function(req, res, next) {
+function get_sina(req, res, next) {
     if(req.query.list == undefined){
         res.end("");
     }
@@ -22,6 +18,8 @@ router.get('/', function(req, res, next) {
             res.end('error: '+msg);
         });
     });
-});
+}
 
-module.exports = router;
+module.exports = {
+live : get_sina
+}

@@ -55,11 +55,11 @@ ul {
     z-index: 9999;
 }
 #tabmenu {
-	position: fixed;
+	//position: fixed;
 	width: 100%;
 	margin: 0;
 	height: 40px;
-    background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#0C1021));
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#0C1021));
 	border-right: 1px solid;
 	border-color: #f8f8f8;
 	text-align: left;
@@ -123,15 +123,15 @@ ul.menu li a, ul.menu li a:visited {
 	text-decoration: none;
 }
 #options {
-	position: absolute;
+	//position: absolute;
 	margin: 0;
-	//float: left;
+	float: left;
 	//min-width: 730px;
-    //background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#0C1021));
-    background: #666;
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#0C1021));
+  //background: #666;
 	width: 100%;
 	padding: 0;   
-	top: 40px 
+	//top: 40px 
 }
 #options h4 {
 	font-weight: normal;

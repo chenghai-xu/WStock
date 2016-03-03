@@ -1,0 +1,25 @@
+doctype html
+html
+  head
+    include head
+    <script type="text/javascript" src="/javascripts/libs/sha.js"></script> 
+    <script type="text/javascript" src="/javascripts/join.js"></script> 
+  body
+    form(id='join',action='/users', method='post',onsubmit='return false', style='width: 280px; padding: 10px 50px 15px;')
+      div
+        label Account 
+        input(name='account', required, style='float: right')
+      div
+        label E-Mail 
+        input(name='email', required, type='email', style='float: right')
+      div
+        label Password 
+        input(id='password', required, type='password', style='float: right')
+      div
+        label Repeat Password 
+        input(id='password1',required, type='password', style='float: right')
+      div
+        input(id='sha_pass',name='password',type='hidden')
+      div
+        button(type='submit') Register
+
