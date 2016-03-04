@@ -43,7 +43,7 @@ var validations_M = {
       ]
 };
 
-module.exports = function (orm, db) {
+module.exports = function (db) {
   var users = db.define('users', users_TB,
   {
     hooks: hooks_M,

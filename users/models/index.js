@@ -4,8 +4,8 @@ var user_model = require('./users');
 
 module.exports = function (app) {
     app.use(orm.express("sqlite:./data/users_db.sqlite", {
-        define: function (db, models, next) {
-            models.users = user_model(orm,db);
+        define: function (req, res, next) {
+            res.users = user_model(req);
             next();
         }
     }));

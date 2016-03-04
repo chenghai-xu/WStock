@@ -19,15 +19,13 @@ function login(e){
     type   : 'post',
     data   : loginForm.serialize()
   }).done(function (data) {
+      //console.log(data);
+    $('#msg').text(data.message);
 
-    if ('errors' in data) {
-      //localtion.href='/login';
-    } else {
-      //localtion.href='/users';
-    }
   }).fail(function (xhr, err, status) {
       //localtion.href='/login';
   });
+
   //});
 }
-
+  
