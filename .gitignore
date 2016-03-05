@@ -1,0 +1,9 @@
+#vim back file
+*~
+*.swp
+*.swo
+
+#package.
+node_modules
+data
+$Recycle.Bin
