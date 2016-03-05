@@ -19,13 +19,10 @@ function join(e){
     type   : 'post',
     data   : loginForm.serialize()
   }).done(function (data) {
-    console.log(data);
-    if ('exist' in data) {
-      //localtion.href='/join';
-      
-    } else {
-      //localtion.href='/users';
-    }
+    var msg = data.join.msg;
+    if(data.join.flag){msg=msg+'.  '+data.login.msg;}
+    $('#msg').text(msg);
+
   }).fail(function (xhr, err, status) {
       //localtion.href='/join';
   });

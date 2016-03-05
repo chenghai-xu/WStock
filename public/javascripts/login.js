@@ -20,7 +20,7 @@ function login(e){
     data   : loginForm.serialize()
   }).done(function (data) {
       //console.log(data);
-    $('#msg').text(data.message);
+    $('#msg').text(data.login.msg);
 
   }).fail(function (xhr, err, status) {
       //localtion.href='/login';

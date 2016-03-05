@@ -1,45 +1,28 @@
-var _       = require('lodash');
 var helpers = require('./helpers');
 var orm     = require('orm');
 var passport = require('passport');
+var authenticate = require('../authenticate');
 
 module.exports = {
 list   : list_account,
 create : creat_account,
-get    : get_account,
-authenticate: authenticate
+get    : get_account
 }
-function authenticate(req, res, next) {
-    passport.authenticate('local', function(err, user, info) {
-        console.log("err: %s, user: %s, info: %s",err,user,info);
-        if (err) { return next(err); }
-        if (!user) { return res.json(info);}
-        req.logIn(user, function(err) {
-            if (err) { return next(err); }
-            info = {auth:true,message:'success'};
-            return res.json(info);
-        });
-    })(req, res, next);
-}
-function creat_account(req, res, next) {
-    var params = _.pick(req.body, 'account', 'password','email');
-    req.models.users.find({or:[ {account: params.account},{email: params.email}]}, function (err, users) {
-        if (err) throw err;
+
+function creat_account(Users_TB, params, callback) {
+    var info ={flag:false,msg:''};
+    Users_TB.find({or:[ {account: params.account},{email: params.email}]}, function (err, users) {
+        if (err) {throw err};
         if (users.length>0) {
-            console.log("account exists already.")
-        return res.end("exist");
+            info.flag=false;info.msg='账号或邮箱已被注册。';
+            //console.log(info);
+            return callback(info); 
         }
-        req.models.users.create(params, function (err, users) {
-            if(err) {
-                console.log("Create user error: %s", err);
-                if(Array.isArray(err)) {
-                    return res.end({ errors: helpers.formatErrors(err) });
-                } else {
-                    return next(err);
-                }
-            }
-            console.log("Create user success: %s", params);
-            authenticate(req,res,next);
+        Users_TB.create(params, function (err, users) {
+            if(err) {throw err;}
+            info.flag=true;info.msg='注册成功。';
+            //console.log(info);
+            return callback(info);
         });
     });
 }

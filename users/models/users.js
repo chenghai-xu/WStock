@@ -29,15 +29,15 @@ var hooks_M = {
       beforeValidation: function () {
         this.createdAt = new Date();
         this.uid  = uuid.v4();
-        //console.log("uid %s",this.uid);
+        //console.log("Here is OK, ",this);
       }
 };
 
 var validations_M = {
-      //uid: [
-        //orm.enforce.ranges.length(4, undefined, "must be atleast 4 letter long")
-        //orm.enforce.ranges.length(undefined, 16, "cannot be longer than 512 letters")
-      //],
+      account: [
+        orm.enforce.ranges.length(4, undefined, "must be atleast 4 letter long"),
+        orm.enforce.ranges.length(undefined, 16, "cannot be longer than 512 letters")
+      ],
       password: [
         orm.enforce.ranges.length(8, undefined, "must be atleast 8 letter long"),
       ]

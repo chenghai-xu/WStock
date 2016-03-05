@@ -1,13 +1,13 @@
-var controllers = require('../users/controlers/index');
+var authenticate = require('../users/authenticate');
 var quotes = require('../quotes/quotes');
-var passport = require('passport');
+
 module.exports = function (app) {
   app.get('/', index);
   app.get('/quotes', quotes.live);
   app.get('/login', login);
   app.get('/join', logon);
-  app.post('/login', controllers.users.authenticate);
-  app.post('/join', controllers.users.create);
+  app.post('/login', authenticate.login);
+  app.post('/join', authenticate.create_account);
   app.get('/user',function(req,res,next){
       console.log(req.user);
   });
