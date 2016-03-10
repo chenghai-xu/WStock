@@ -9,9 +9,11 @@ var LocalStrategy = require('passport-local').Strategy;
 var session = require('express-session');
 
 var routes = require('./routes/index');
-var models = require('./users/models/index');
+var users = require('./users/index');
+var quotes = require('./quotes/index');
 var authenticate = require('./users/authenticate');
 var app = express();
+quotes.init();
 
 authenticate.init();
 
@@ -34,7 +36,7 @@ app.use(session({secret: 'cookie_secret',
     resave: true,
     saveUninitialized: true 
 }));
-models(app);
+users.bind(app);
 authenticate.bind(app);
 routes(app);
 

@@ -1,5 +1,5 @@
 var passport = require('passport');
-var controllers = require('./controlers/index');
+var controllers = require('./index').controlers;
 var LocalStrategy = require('passport-local').Strategy;
 var _= require('lodash');
 var Users = null;
@@ -8,14 +8,11 @@ function validate(account, password, done) {
     Users.find({ account: account },function(err, users) {
         if (err) { return done(err); }
         if (users.length<1) {
-            //console.log('用户名不存在.' );
             return done(null, false, {flag:false, msg: '账号不存在。'});
         }
         if (users[0].password!=password) {
-            //console.log('密码不匹配.' );
             return done(null, false, {flag:false,  msg: '密码不匹配。'});
         }
-        //console.log('验证成功.' );
         return done(null, users[0],{flag:true,msg:'登陆成功。'});
     });
 }

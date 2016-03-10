@@ -2,6 +2,14 @@
 var moment = require('moment');
 var orm = require('orm');
 var uuid = require('node-uuid');
+var account_pattern=/^[a-zA-Z][\w\-_\.]/;
+var email_pattern=/^[\w\.\-_]+@[\w\-_]+(\.[\w\-_]+){1,4}$/;
+function valide_account(account) {
+    return account_pattern.test(account);
+}
+function valide_email(email) {
+    return email_pattern.test(email);
+}
 
 var users_TB = {
     uid         : { type: 'text', key: true, required: true},
@@ -17,7 +25,7 @@ var users_TB = {
 var methods_m = {
       serialize: function () {
         return {
-          uid        : this.uid,
+          uid       : this.uid,
           password  : this.password,
           email     : this.email,
           createdAt : moment(this.createdAt).fromNow()
@@ -25,30 +33,34 @@ var methods_m = {
     }
 };
 
-var hooks_M = {
+var hooks_m = {
       beforeValidation: function () {
         this.createdAt = new Date();
         this.uid  = uuid.v4();
-        //console.log("Here is OK, ",this);
       }
 };
 
-var validations_M = {
+var validations_m = {
       account: [
-        orm.enforce.ranges.length(4, undefined, "must be atleast 4 letter long"),
-        orm.enforce.ranges.length(undefined, 16, "cannot be longer than 512 letters")
+        orm.enforce.ranges.length(4, 32, '帐号长度须在4-32位之间。'),
+        orm.enforce.patterns.match(account_pattern,null,'帐号格式不合法。'),
+        orm.enforce.unique({ignoreCase: true},'账号已被注册。')
       ],
       password: [
-        orm.enforce.ranges.length(8, undefined, "must be atleast 8 letter long"),
+        orm.enforce.ranges.length(8, undefined, '密码长度至少8位。'),
+      ],
+      email: [
+        orm.enforce.patterns.email('邮箱格式不合法。'),
+        orm.enforce.unique({ignoreCase: true},'邮箱已被注册。')
       ]
 };
 
-module.exports = function (db) {
-  var users = db.define('users', users_TB,
-  {
-    hooks: hooks_M,
-    validations: validations_M,
+var fun_define = {
+    hooks: hooks_m,
+    validations: validations_m,
     methods: methods_m
-  });
-  return users;
+};
+
+module.exports = function (db) {
+  return db.define('users', users_TB, fun_define);
 };

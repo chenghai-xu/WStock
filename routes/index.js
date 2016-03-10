@@ -1,9 +1,9 @@
 var authenticate = require('../users/authenticate');
-var quotes = require('../quotes/quotes');
+var quotes = require('../quotes/index');
 
 module.exports = function (app) {
   app.get('/', index);
-  app.get('/quotes', quotes.live);
+  app.get('/quotes',quotes.quote);
   app.get('/login', login);
   app.get('/join', logon);
   app.post('/login', authenticate.login);
