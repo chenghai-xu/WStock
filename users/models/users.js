@@ -35,7 +35,8 @@ var methods_m = {
 
 var hooks_m = {
       beforeValidation: function () {
-        this.createdAt = new Date();
+        //this.createdAt = new Date();
+        this.createdAt = moment().add(-8,'hours').toDate() ;
         this.uid  = uuid.v4();
       }
 };

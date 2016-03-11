@@ -1,8 +1,9 @@
 var http = require('http');
 var encoding = require('encoding');
+var moment = require('moment');
 
 function download_sina(list, callback) {
-    var url = 'http://hq.sinajs.cn/list='+list;
+    var url = 'http://hq.sinajs.cn/list='+list.toLowerCase();
     console.log('Download Quote: '+url);
     var cont=new Buffer('');
     http.get(url, function(res,msg){
@@ -21,7 +22,6 @@ function download_sina(list, callback) {
 
 function text2object(quotes,text) {
     var stockListArray = encoding.convert(text,'utf8','gbk').toString().split(';');
-    var stockInfos = [];
     for(var i=0; i<stockListArray.length;i++){
         var es = stockListArray[i].split(/_|="|,|"/);
         if(es.length<5) continue;
@@ -40,9 +40,10 @@ function text2object(quotes,text) {
            quotes[i].BuyVolume = [parseFloat(es[13]),parseFloat(es[15]),parseFloat(es[17]),parseFloat(es[19]),parseFloat(es[21])];
            quotes[i].SellPrice = [parseFloat(es[24]),parseFloat(es[26]),parseFloat(es[28]),parseFloat(es[30]),parseFloat(es[32])];
            quotes[i].SellVolume= [parseFloat(es[23]),parseFloat(es[25]),parseFloat(es[27]),parseFloat(es[29]),parseFloat(es[31])];
-           quotes[i].Time      = es[33]+' '+es[34];
+           quotes[i].Time      = new Date(es[33]+" "+es[34]);
     }
 }
+
 module.exports = {
     download_sina : download_sina,
     text2object : text2object

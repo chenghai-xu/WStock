@@ -3,6 +3,7 @@ var settings = require('../config/settings');
 var models = require('./models/index');
 var sina = require('./sina');
 var http = require('http');
+var moment = require('moment');
 var database = {models:{}};
 
 function get_sina(req, res, next) {
@@ -13,19 +14,61 @@ function get_sina(req, res, next) {
         res.end(data);
     });
 }
-function update_quote()
-{
-    database.models.current_quote.find().only('Code').run(function(err,quotes){
-        var list=[];
-        for(var i=0; i< quotes.length; i++){
-            list[i]=quotes[i].Code;
+
+function update(){
+    update_timeline();
+    //update_historical();
+    update_quote();
+}
+function update_timeline(){
+    var code = 'SH000001';
+    database.models.current_quote.find({Code:code}).run(function(err,quotes){
+        if(err){
+            console.log(err);
+            return;
         }
-        sina.download_sina(list.join(',').toLowerCase(),function(err,data){
+        var lqdt = moment(quotes[0].Time);
+        console.log('Last quote date: %s', lqdt);
+        sina.download_sina(code,function(err,data){
             if(err) {
                 console.log(err);
                 return;
             }
             sina.text2object(quotes,data);
+            var cqdt = moment(quotes[0].Time);
+            console.log('Current quote date: %s', cqdt);
+            quotes[0].save(function(err){
+                if(err) console.log(err);
+            });
+            database.models.historical.aggregate({Code:code}).max('Date').get(function(err,lDate){
+                console.log('Last historical date: ', lDate);
+            });
+        });
+    });
+}
+
+function update_historical(){
+    database.models.current_quote.find().only('Code').run(function(err,quotes){
+        var code = '';
+        for(var i=0; i< quotes.length; i++){
+            code=quotes[i].Code;
+        }
+    });
+}
+function update_quote()
+{
+    database.models.current_quote.find().run(function(err,quotes){
+        var list=[];
+        for(var i=0; i< quotes.length; i++){
+            list[i]=quotes[i].Code;
+        }
+        sina.download_sina(list.join(','),function(err,data){
+            if(err) {
+                console.log(err);
+                return;
+            }
+            sina.text2object(quotes,data);
+            console.log('Update quote, time: ', quotes[0].Time);
             for(var i=0; i< quotes.length; i++){
                 quotes[i].save(function(err){
                     if(err) console.log(err);
@@ -56,10 +99,10 @@ function connect(){
                 if (err) {console.log(err);return;}
                 console.log("Init models of Historical. count: %s",count);
             });
+            update();
         });
 
     });
-    setTimeout(update_quote,5000);
 }
 
 module.exports = {
