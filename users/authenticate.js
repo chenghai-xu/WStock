@@ -40,13 +40,15 @@ function init() {
         passwordField: 'password'
     }, validate));
     passport.serializeUser(function(user,done){
+        console.log('passport.serializeUser: ',user.account);
         done(null,user.uid);
     });
-    passport.deserializeUser(function(account,done){
-        Users.find({account:account},function(err,users){
+    passport.deserializeUser(function(uid,done){
+        console.log('passport.deserializeUser: ',uid);
+        Users.find({uid:uid},function(err,users){
             if(err) { return done(err); }
             if(users.length<1) {return done(err,"anonymous");}
-            done(err,users[0].uid);
+            done(err,users[0].account);
         });
     });
 
@@ -68,12 +70,10 @@ function bind(app) {
 
 function auth(req, res, next, callback) {
     var pass_cb = passport.authenticate('local', function(err, user, info) {
-        //console.log("authenticate. err: %s, user: %s, info: ",err,user,info);
         if (err) { throw err;}
         if (!user) { return callback(info);}
         req.logIn(user, function(err) {
             if (err) { return callback(err); }
-            //console.log("session: ",req.session);
             return callback(info);
         });
     });

@@ -19,8 +19,10 @@ function login(e){
     type   : 'post',
     data   : loginForm.serialize()
   }).done(function (data) {
-      //console.log(data);
     $('#msg').text(data.login.msg);
+    if(data.login.flag){
+      window.location='/';
+    }
 
   }).fail(function (xhr, err, status) {
       //localtion.href='/login';

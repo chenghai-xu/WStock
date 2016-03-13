@@ -12,16 +12,17 @@ function download_sina(list, callback) {
         });
         res.on('end',function(){
             console.log('Download Quote success.');
-            callback(null,cont);
+            callback(null,encoding.convert(cont,'utf8','gbk').toString());
         });
         res.on('error',function(){
-            callback(msg,cont);
+            callback(msg,encoding.convert(cont,'utf8','gbk').toString());
         });
     });
 }
 
 function text2object(quotes,text) {
-    var stockListArray = encoding.convert(text,'utf8','gbk').toString().split(';');
+    //var stockListArray = encoding.convert(text,'utf8','gbk').toString().split(';');
+    var stockListArray = text.split(';');
     for(var i=0; i<stockListArray.length;i++){
         var es = stockListArray[i].split(/_|="|,|"/);
         if(es.length<5) continue;

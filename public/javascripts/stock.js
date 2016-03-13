@@ -138,7 +138,8 @@ function updateStocks() {
 			
 					if(elements.length > 4) {
 						try {
-							if ( bfirstload ) stockInfo.stockName = elements[3];
+							//if ( bfirstload ) stockInfo.stockName = elements[3];
+							stockInfo.stockName = elements[3];
 							stockInfo.stockOpenPrice = parseFloat(elements[4]).toFixed(2);
 							stockInfo.stockClosePrice = parseFloat(elements[5]).toFixed(2);
 							stockInfo.stockCurrPrice = parseFloat(elements[6]).toFixed(2);
@@ -188,6 +189,7 @@ function getStockInfo(stockCode, f){
 				if(elements.length > 5) {
 					try {
 						stockInfo = {
+							stockName:elements[3],
 							stockOpenPrice: parseFloat(elements[4]).toFixed(2),
 							stockClosePrice: parseFloat(elements[5]).toFixed(2),
 							stockCurrPrice: parseFloat(elements[6]).toFixed(2),
@@ -249,6 +251,7 @@ function updateStocksNew(codeList, f) {
                         var stockInfo = newStockinfo();
 						try {
                             stockInfo.stockCode = codeList[i];
+                            stockInfo.stockName = elements[3];
 							stockInfo.stockOpenPrice = parseFloat(elements[4]).toFixed(2);
 							stockInfo.stockClosePrice = parseFloat(elements[5]).toFixed(2);
 							stockInfo.stockCurrPrice = parseFloat(elements[6]).toFixed(2);

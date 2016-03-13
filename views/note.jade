@@ -1,0 +1,14 @@
+extends layout
+block scripts
+  script(type='text/javascript', src='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_HTMLorMML')
+  script(type='text/javascript', src='/javascripts/note.js')
+block content
+  div(class='container nopadding')
+    div(class='col-md-5')
+      textarea(id='MathInput',style='min-width:450px;min-height:300px;',onkeyup='Preview.Update()') Example: When \(a \ne 0\), there are two solutions to \(ax^2 + bx + c = 0\) and they are \[x = {-b \pm \sqrt{b^2-4ac} \over 2a}.\]
+      button(id='preview_note',class='btn btn-default',onclick='Preview.Update()') 预览
+      button(id='save_note',class='btn btn-default',onclick='save_note()') 保存
+      label(id='msg',style='color: red;')
+    div(class='col-md-7')
+      div(id='MathPreview')
+      div(id='MathBuffer',style='visibility:hidden;')

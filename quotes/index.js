@@ -16,9 +16,9 @@ function get_sina(req, res, next) {
 }
 
 function update(){
-    update_timeline();
+    //update_timeline();
     //update_historical();
-    update_quote();
+    //update_quote();
 }
 function update_timeline(){
     var code = 'SH000001';
@@ -79,6 +79,7 @@ function update_quote()
 }
 
 function connect(){
+    return;
     orm.connect("sqlite:./data/IStockInfo.db", function (err, db) {
         if (err) throw err;
         database = db;

@@ -1,26 +1,31 @@
-doctype html
-html
-  head
-    include head
-    <script type="text/javascript" src="/javascripts/libs/sha.js"></script> 
-    <script type="text/javascript" src="/javascripts/join.js"></script> 
-  body
-    form(id='join',action='/users', method='post',onsubmit='return false', style='width: 280px; padding: 10px 50px 15px;')
-      div
-        label Account 
-        input(name='account', required, style='float: right')
-      div
-        label E-Mail 
-        input(name='email', required, type='email', style='float: right')
-      div
-        label Password 
-        input(id='password', required, type='password', style='float: right')
-      div
-        label Repeat Password 
-        input(id='password1',required, type='password', style='float: right')
-      div
-        input(id='sha_pass',name='password',type='hidden')
-      div
-        button(type='submit') Register
-        label(id='msg',style='color: red;float: right')
+extends layout
+block scripts
+  <script type="text/javascript" src="/javascripts/libs/sha.js"></script> 
+  <script type="text/javascript" src="/javascripts/join.js"></script> 
+block content
+  form(id='join',action='/users', method='post',onsubmit='return false', class='form-horizontal',role='form')
+    div(class='form-group')
+      label(class='col-sm-1 control-label') 账号
+      div(class='col-sm-2')
+        input(name='account',class='form-control', required)
+    div(class='form-group')
+      label(class='col-sm-1 control-label') 邮件
+      div(class='col-sm-2')
+        input(name='email',class='form-control', required, type='email')
+    div(class='form-group')
+      label(class='col-sm-1 control-label') 密码
+      div(class='col-sm-2')
+        input(id='password',class='form-control', required, type='password')
+    div(class='form-group')
+      label(class='col-sm-1 control-label') 重复密码
+      div(class='col-sm-2')
+        input(id='password1',class='form-control', required, type='password')
+    div(class='form-group',type='hidden')
+      input(id='sha_pass',name='password',type='hidden')
+    div(class='form-group')
+      div(class='col-sm-1')
+      div(class='col-sm-1')
+        button(class='btn btn-default',type='submit') 注册
+      div(class='col-sm-2')    
+        label(id='msg',style='color: red;')
 

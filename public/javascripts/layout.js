@@ -169,6 +169,7 @@ function init() {
 	$("#stocksTable").delegate(".note", "click", function(){ showStockNote(); });
 	$("#stocksTable").delegate(".delete", "click", function(){ deleteStockRow(); });
 	$("#stocksTable").delegate(".flag", "click", function(){ flagStock(); });
+	$("#stocksTable #template").hide(); 
 	
     initializeStockRow();
     updateStockPriceNew();
@@ -331,6 +332,7 @@ function newStockRow(stock, activate) {
 	var row = $("#stocksTable .templateRow").clone();
 	
 	row.removeClass("templateRow").addClass("tableRow");	
+	row.show();	
 	table.append(row);
 
 	$("td", row).click(function() {
@@ -490,7 +492,7 @@ function updateStockInfoNew(row,stockInfo) {
    	}
    }
    else {
-   	//$(".stockName", row).text(stockInfo.stockName);
+   	$(".stockName", row).text(stockInfo.stockName);
    	if (stockInfo.stockOpenPrice == 0) {	
    		row.removeClass("stockUp").removeClass("stockDown").addClass("stockStop");
    	}
