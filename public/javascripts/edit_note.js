@@ -1,48 +1,35 @@
 $(document).ready(function () {
+    CKEDITOR.plugins.addExternal( 'mathjax', '/ckmathjax/','plugin.js' );
     CKEDITOR.replace('editor_input',
-        {extraPlugins:'mthjax,mathjax,widget,lineutils,dialog,clipboard',
-            mathJaxLib:'/MathJax-2.5-latest/MathJax.js?config=TeX-MML-AM_HTMLorMML'
-            //mathJaxClass:'equation'
+        //{extraPlugins:'mathjax,widget,lineutils,dialog,clipboard',
+        {extraPlugins:'mathjax',
+            mathJaxLib:'http://cdn.mathjax.org/mathjax/2.5-latest/MathJax.js?config=TeX-MML-AM_HTMLorMML',
+        //mathJaxLib:'/MathJax-2.5-latest/MathJax.js?config=TeX-MML-AM_HTMLorMML'
+        //mathJaxClass:'equation'
+        removePlugins:'pagebreak,templates,bidi,div,blockquote,iframe,forms,newpage,smiley',
+        toolbarGroups:[
+                { name: 'document', groups: [ 'mode', 'document', 'doctools' ] },
+                { name: 'clipboard', groups: [ 'clipboard', 'undo' ] },
+                { name: 'editing', groups: [ 'find', 'selection', 'spellchecker', 'editing' ] },
+                { name: 'forms', groups: [ 'forms' ] },
+                { name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ] },
+                { name: 'paragraph', groups: [ 'list', 'indent', 'blocks', 'align', 'bidi', 'paragraph' ] },
+                { name: 'links', groups: [ 'links' ] },
+                { name: 'insert', groups: [ 'insert' ] },
+                { name: 'styles', groups: [ 'styles' ] },
+                { name: 'colors', groups: [ 'colors' ] },
+                { name: 'tools', groups: [ 'tools' ] },
+                { name: 'about', groups: [ 'about' ] },
+                '/',
+                        { name: 'others', groups: [ 'others' ] }
+        ]
         });
     if (CKEDITOR.env.ie && CKEDITOR.env.version == 8 ) {
         document.getElementById( 'ie8-warning' ).className = 'tip alert';
     }     
-    /*
-    var head = CKEDITOR.instances.metas.document.getHead();
-    var script = CKEDITOR.dom.element.createFromHtml( '<script type="text/javascript" src="/MathJax-2.5-latest/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>' );
-    head.append( script );
-    */
-
-    /*
-    $('#editControls a').click(function(e) {
-        switch($(this).data('role')) {
-            case 'h1':
-            case 'h2':
-            case 'p':
-                document.execCommand('formatBlock', false, '<' + $(this).data('role') + '>');
-                break;
-            //case 'MathJax':
-                //document.execCommand('FormatBlock', false, 'p');
-                //MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
-                //break;
-            case 'save':
-                alert('Not support now.')
-                break;
-            case 'export':
-                alert('Not support now.')
-                break;
-            default:
-                document.execCommand($(this).data('role'), false, null);
-                break;
-
-        }
-
-    });
-    MathJax.Hub.Register.MessageHook("New Math",function (message) {
-        //  do something with the error.  message[2] is the Error object that records the problem.
-        $('#msg').text(message[1]);
-    });
-    */
+    //alert(CKEDITOR.plugins.loaded);
+    console.log('loaded plugins: ',CKEDITOR.plugins.loaded);
+    console.log('registered plugins: ',CKEDITOR.plugins.registered);
 
 });
 
