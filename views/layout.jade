@@ -5,20 +5,21 @@ html
       include head
     block scripts
   body
-    block navigator
-      include navigator
-    block content
-      div(id='options',class='container nopadding')
-        div(id='custom-stock-infos',class='row nopadding')
-          div(class='table-responsive col-md-6 nopadding')
-            include quotes_table
-          div(class='col-md-6 nopadding')
-            include min_candle
-        div#portfolios 资产组合
-        div#basci-options 提醒设置
-        div#backup 数据备份
-    block footer
-      div(class='footer')
-        p By Chenghai XU, E-Mail: xuchenghai@gmail.com,  Copyright (c) 2016
+    block mbody
+      block navigator
+        include navigator
+      block content
+        div(id='options',class='container-fluid')
+          div(id='custom-stock-infos',class='row')
+            div(class='table-responsive col-md-6')
+              include quotes_table
+            div(class='col-md-6')
+              include min_candle
+          div#portfolios 资产组合
+          div#basci-options 提醒设置
+          div#backup 数据备份
+      block footer
+        div(class='footer-banner')
+          p(class='text-center') By Chenghai XU, E-Mail: xuchenghai@gmail.com,  Copyright (c) 2016
 
 

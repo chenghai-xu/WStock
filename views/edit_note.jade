@@ -1,0 +1,14 @@
+extends layout
+block scripts
+  script(type='text/javascript', src='/MathJax-2.5-latest/MathJax.js?config=TeX-MML-AM_HTMLorMML')
+  script(type='text/javascript', src='/javascripts/edit_note.js')
+  //script(type='text/javascript', src='/javascripts/note.js')
+  script(type='text/javascript', src='/ckeditor/ckeditor.js')
+block content
+  div(class='container')
+    div
+      textarea(name='editor_input',id='editor_input',class='form-control',style='min-height:100px;max-height:200px;',onkeyup='Preview.Update()') Example: When \(a \ne 0\), there are two solutions to \(ax^2 + bx + c = 0\) and they are \[x = {-b \pm \sqrt{b^2-4ac} \over 2a}.\]
+    //div
+    //  div(id='editor_preview', style='min-height:100px;max-height: 300px; overflow: scroll;')
+    //  div(id='editor_buffer',style='visibility:hidden;')
+    //  button(id='preview_note',class='btn btn-default',onclick='Preview.Update()') 预览

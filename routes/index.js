@@ -12,6 +12,8 @@ module.exports = function (app) {
   app.get('/logout', logout);
   app.get('/user',user);
   app.get('/note',note);
+  app.get('/note',note);
+  app.get('/edit_note',edit_note);
 };
 
 var isAuthenticated = function(req,res,next){
@@ -39,6 +41,9 @@ function index(req, res, next) {
 function note(req, res, next) {
   render(req,res,next,'note');
   //res.render('note', { title: 'Express' });
+}
+function edit_note(req, res, next) {
+  render(req,res,next,'edit_note');
 }
 function user(req, res, next) {
   res.redirect('/');

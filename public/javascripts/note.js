@@ -1,5 +1,5 @@
 $(document).ready(function () {
-	Preview.Init();
+	Preview.Init('editor_preview','editor_buffer','editor_input'); 
 	Preview.Update();
  });
 
@@ -8,6 +8,7 @@ var Preview = {
 
   preview: null,     // filled in by Init below
   buffer: null,      // filled in by Init below
+  input: null,
 
   timeout: null,     // store setTimout id
   mjRunning: false,  // true when MathJax is processing
@@ -17,9 +18,10 @@ var Preview = {
   //
   //  Get the preview and buffer DIV's
   //
-  Init: function () {
-    this.preview = document.getElementById("MathPreview");
-    this.buffer = document.getElementById("MathBuffer");
+  Init: function (idPre,idBuf,idInp) {
+    this.preview = document.getElementById(idPre);
+    this.buffer = document.getElementById(idBuf);
+    this.input  = document.getElementById(idInp);
   },
 
   //
@@ -57,7 +59,8 @@ var Preview = {
   CreatePreview: function () {
     Preview.timeout = null;
     if (this.mjPending) return;
-    var text = document.getElementById("MathInput").value;
+    //var text = document.getElementById("MathInput").value;
+    var text = this.input.value;
     if (text === this.oldtext) return;
     if (this.mjRunning) {
       this.mjPending = true;
@@ -92,3 +95,31 @@ Preview.callback.autoReset = true;  // make sure it can run more than once
 function save_note(){
 	$('#msg').text('Not support now.');
 }
+jQuery.fn.extend({
+    insertAtCaret: function(myValue){
+        return this.each(function(i) {
+            if (document.selection) {
+                //For browsers like Internet Explorer
+                this.focus();
+                var sel = document.selection.createRange();
+                sel.text = myValue;
+                this.focus();
+            }
+            else if (this.selectionStart || this.selectionStart == '0') {
+                //For browsers like Firefox and Webkit based
+                var startPos = this.selectionStart;
+                var endPos = this.selectionEnd;
+                var scrollTop = this.scrollTop;
+                this.value = this.value.substring(0, startPos)+myValue+this.value.substring(endPos,this.value.length);
+                this.focus();
+                this.selectionStart = startPos + myValue.length;
+                this.selectionEnd = startPos + myValue.length;
+                this.scrollTop = scrollTop;
+            } else {
+                this.value += myValue;
+                this.focus();
+            }
+        });
+    }
+});
+
