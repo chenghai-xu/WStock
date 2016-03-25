@@ -17,7 +17,7 @@ function creat(Users_TB, params, callback) {
 }
 function list(Users_TB, params, callback) {
     Users_TB.find({owner: params.owner}).
-        omit("content","owner").
+        omit("content").
         run(function (err, users) {
             var info ={flag:false,msg:''};
             if(err) {

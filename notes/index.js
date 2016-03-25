@@ -2,6 +2,7 @@ var orm      = require('orm');
 var settings = require('../config/settings');
 var models = require('./models/index');
 var control = require('./controlers/index');
+var msg2view = require('../views/msg2view');
 var database = {models:{}};
 
 function connect(){
@@ -52,6 +53,25 @@ function bind(app){
         next();
     });
 }
+function list_note(req, res, next) {
+            console.log('ialla');
+    if(req.isAuthenticated()){ 
+        //notes.controlers.note.list(notes.models().note,{owner:req.user.uid},function(info){
+        control.note.list(req.models.note,{owner:req.user.uid},function(info){
+            if(!info.flag){
+                res.redirect('/');
+                return;
+            }
+            var view_info = msg2view.msg(req);
+            view_info.notes = info.notes;
+            console.log(view_info);
+            res.render('note',view_info);
+        });
+    }
+    else{
+        res.redirect('/login');
+    }
+}
 
 
 module.exports = {
@@ -60,6 +80,7 @@ module.exports = {
     bind: bind,
     controlers: control,
     init: connect,
-    create_note: create_note
+    create_note: create_note,
+    list_note: list_note
 };
 

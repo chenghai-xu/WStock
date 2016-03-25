@@ -1,6 +1,7 @@
 $(document).ready(function () {
-	Preview.Init('editor_preview','editor_buffer','editor_input'); 
-	Preview.Update();
+	//Preview.Init('editor_preview','editor_buffer','editor_input'); 
+	//Preview.Update();
+    console.log(notes);
  });
 
 var Preview = {
