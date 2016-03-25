@@ -1,6 +1,8 @@
+var content = null;
+var title = null;
 $(document).ready(function () {
     CKEDITOR.plugins.addExternal( 'mathjax', '/ckmathjax/','plugin.js' );
-    CKEDITOR.replace('editor_input',
+    var content = CKEDITOR.replace('content',
         //{extraPlugins:'mathjax,widget,lineutils,dialog,clipboard',
         {extraPlugins:'mathjax',
             mathJaxLib:'http://cdn.mathjax.org/mathjax/2.5-latest/MathJax.js?config=TeX-MML-AM_HTMLorMML',
@@ -27,13 +29,37 @@ $(document).ready(function () {
     if (CKEDITOR.env.ie && CKEDITOR.env.version == 8 ) {
         document.getElementById( 'ie8-warning' ).className = 'tip alert';
     }     
+    content.on('save',save);
+    title = CKEDITOR.inline('title');
     //alert(CKEDITOR.plugins.loaded);
-    console.log('loaded plugins: ',CKEDITOR.plugins.loaded);
-    console.log('registered plugins: ',CKEDITOR.plugins.registered);
+    //console.log('loaded plugins: ',CKEDITOR.plugins.loaded);
+    //console.log('registered plugins: ',CKEDITOR.plugins.registered);
 
 });
 
 function MathInsert()
 {
     $('#note_content').insertAtCaret($('#MathInput').val());
+}
+function save(evt)
+{
+    var note={title:title.getData(),
+    content:evt.editor.getData()};
+    console.log(note);
+    $.ajax({
+        url    : '/edit_note',
+        type   : 'post',
+        data   : note
+    }).done(function (data) {
+        //console.log(data);
+        $('#msg').text(data.msg);
+        if(data.flag){
+            //window.location='/';
+        }
+
+    }).fail(function (xhr, err, status) {
+        //localtion.href='/login';
+    });
+
+    return false;
 }

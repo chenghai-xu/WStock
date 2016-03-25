@@ -40,15 +40,19 @@ function init() {
         passwordField: 'password'
     }, validate));
     passport.serializeUser(function(user,done){
-        console.log('passport.serializeUser: ',user.account);
+        //console.log('passport.serializeUser: ',user.account);
         done(null,user.uid);
     });
     passport.deserializeUser(function(uid,done){
-        console.log('passport.deserializeUser: ',uid);
+        //console.log('passport.deserializeUser: ',uid);
         Users.find({uid:uid},function(err,users){
             if(err) { return done(err); }
             if(users.length<1) {return done(err,"anonymous");}
-            done(err,users[0].account);
+            var user = {account:users[0].account,
+                uid:users[0].uid,
+                email:users[0].email
+            };
+            done(err,user);
         });
     });
 

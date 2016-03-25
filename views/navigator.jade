@@ -18,13 +18,13 @@ nav(class='navbar navbar-default navbar-static-top',role='navigation')
       li
         a(href = '/note') 日记
     ul(class = 'nav navbar-nav navbar-right nav-pills')
-      if (exp_info.auth==false)
+      if (user.auth==false)
         li
           a(href='/login') 登录
         li
           a(href='/join') 注册
       else
         li 
-          a(href='/user') #{exp_info.user}
+          a(href='/user') #{user.account}
         li
           a(href='/logout') 注销

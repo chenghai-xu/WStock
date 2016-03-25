@@ -11,9 +11,11 @@ var session = require('express-session');
 var routes = require('./routes/index');
 var users = require('./users/index');
 var quotes = require('./quotes/index');
+var notes = require('./notes/index');
 var authenticate = require('./users/authenticate');
 var app = express();
 quotes.init();
+notes.init();
 
 authenticate.init();
 
@@ -38,6 +40,7 @@ app.use(session({secret: 'cookie_secret',
 }));
 users.bind(app);
 authenticate.bind(app);
+notes.bind(app);
 routes(app);
 
 // catch 404 and forward to error handler

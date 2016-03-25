@@ -26,6 +26,7 @@ var methods_m = {
       serialize: function () {
         return {
           uid       : this.uid,
+          account   : this.account,
           password  : this.password,
           email     : this.email,
           createdAt : moment(this.createdAt).fromNow()
@@ -35,7 +36,6 @@ var methods_m = {
 
 var hooks_m = {
       beforeValidation: function () {
-        //this.createdAt = new Date();
         this.createdAt = moment().add(-8,'hours').toDate() ;
         this.uid  = uuid.v4();
       }
