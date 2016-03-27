@@ -1,6 +1,6 @@
 nav(class='navbar navbar-default navbar-static-top',role='navigation')
   div.navbar-header
-    //img(src='/favicon.ico',height='32px',width='32px',style='display: inline-block; padding-left: 30px; padding-right:10px;')
+    div(class='col-sm-1')
     img(src='/favicon.ico',style='height:32px; width:32px;',href='/')
     //a(class='navbar-band',href='#') Express
   div
@@ -16,15 +16,18 @@ nav(class='navbar navbar-default navbar-static-top',role='navigation')
       li
         a(href = '#backup') 数据备份
       li
-        a(href = '/note') 笔记
+        a(href = '/note_book') 笔记
     ul(class = 'nav navbar-nav navbar-right nav-pills')
       if (user.auth==false)
         li
-          a(href='/login') 登录
+          //button(class='btn btn-default',data-toggle='modal',data-target='#sign-in') 登录
+          a(href='/login',onclick='$("#sign-in").modal("show");return false;') 登录
         li
-          a(href='/join') 注册
+          //button(class='btn btn-default',data-toggle='modal',data-target='#sign-up') 注册          
+          a(href='/join',onclick='$("#sign-up").modal("show");return false;') 注册
       else
         li 
           a(href='/user') #{user.account}
         li
           a(href='/logout') 注销
+      div(class='col-sm-1')

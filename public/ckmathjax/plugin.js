@@ -87,7 +87,7 @@
 				},
 
 				upcast: function( el, data ) {
-                    console.log('upcast: ', el, data);
+                    //console.log('upcast: ', el, data);
 					if ( !( el.name == 'span' && el.hasClass( cls ) ) )
 						return;
 
@@ -113,7 +113,7 @@
 				},
 
 				downcast: function( el ) {
-                    console.log('downcast');
+                    //console.log('downcast');
 					el.children[ 0 ].replaceWith( new CKEDITOR.htmlParser.text( CKEDITOR.tools.htmlEncode( this.data.math ) ) );
 
 					// Remove style display:inline-block.

@@ -30,19 +30,8 @@ function create_note(req, res, next){
         owner: req.user.uid,
         title: req.body.title,
         content: req.body.content};
-        //*/
     console.log("create note: ",params);
-    //info.msg='test';
-    //return res.json(info);
     control.note.create(req.models.note,params,function(created){
-        /*
-        info.flag=created;
-        if(!created.flag){
-            info.msg='新建成功';
-            console.log(info);
-            return res.json(info);
-        }
-        */
         return res.json(created);
 
     });
@@ -54,10 +43,29 @@ function bind(app){
     });
 }
 function list_note(req, res, next) {
-            console.log('ialla');
     if(req.isAuthenticated()){ 
-        //notes.controlers.note.list(notes.models().note,{owner:req.user.uid},function(info){
         control.note.list(req.models.note,{owner:req.user.uid},function(info){
+            if(!info.flag){
+                res.redirect('/');
+                return;
+            }
+            var view_info = msg2view.msg(req);
+            view_info.notes = info.notes;
+            console.log(view_info);
+            res.render('note_book',view_info);
+        });
+    }
+    else{
+        res.redirect('/login');
+    }
+}
+function get_note(req, res, next) {
+    if(req.query.uid == undefined){
+        res.redirect('/note_book');
+        return;
+    }
+    if(req.isAuthenticated()){ 
+        control.note.get(req.models.note,{uid:req.query.uid,owner:req.user.uid},function(info){
             if(!info.flag){
                 res.redirect('/');
                 return;
@@ -73,14 +81,30 @@ function list_note(req, res, next) {
     }
 }
 
+function save_note(req, res, next){
+    var info={flag:false,msg:'请先登录。'};
+    if(!req.isAuthenticated()){
+        return res.json(info);
+    }
+    var params = {
+        uid: req.body.uid,
+        owner: req.user.uid,
+        title: req.body.title,
+        content: req.body.content};
+    console.log("save note: ",params);
+    control.note.save(req.models.note,params,function(saved){
+        return res.json(saved);
+
+    });
+}
 
 module.exports = {
-    //models: database.models,
-    //models: function(){return database.models},
     bind: bind,
     controlers: control,
     init: connect,
     create_note: create_note,
-    list_note: list_note
+    list_note: list_note,
+    get_note: get_note,
+    save_note: save_note
 };
 

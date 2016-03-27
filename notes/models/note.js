@@ -21,15 +21,6 @@ var methods_m = {
             title    : this.title   ,
             content  : this.content
         };
-    },
-    clip: function () {
-        return {
-            uid      : this.uid      ,
-            owner    : this.owner      ,
-            created  : this.created      ,
-            updated  : this.updated     ,
-            title    : this.title   ,
-        };
     }
 };
 
@@ -39,9 +30,15 @@ var hooks_m = {
         //Description: The create/update action will add 8 hours to the datetime,
         //while selected datetime does not add -8 hours. 
         //Fixed: So before create/update action we add -8 hours to balance it.
+        if(this.uid){
+            return;
+        }
         this.created = moment().add(-8,'hours').toDate() ;
         this.updated = this.created;
         this.uid  = uuid.v4();
+    },
+    beforeSave: function(){
+        this.updated = moment().add(-8,'hours').toDate() ;
     }
 };
 

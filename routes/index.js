@@ -13,7 +13,10 @@ module.exports = function (app) {
   app.post('/join', authenticate.create_account);
   app.get('/logout', logout);
   app.get('/user',user);
-  app.get('/note',notes.list_note);
+  app.get('/note_book',notes.list_note);
+  app.post('/note_book',notes.create_note);
+  app.get('/note',notes.get_note);
+  app.post('/note',notes.save_note);
   app.get('/edit_note',edit_note);
   app.post('/edit_note',notes.create_note);
 };

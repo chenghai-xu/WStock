@@ -162,7 +162,7 @@ function init() {
 	$("#btnLoadStock").click(function() { updateStockPriceNew(); });
 	$("#btnSaveStock").click(function() { saveOptions(); });
 	$("#btnBackOptions").click(function() { backOptionsPage(); });
-	$("#btnSaveNote").click(function() { saveStockNote(); });
+	$("#btnSaveStockNote").click(function() { saveStockNote(); });
 	$("#btnExportStock").click(function() { exportStock(); });
 	$("#btnImportStock").click(function() { importStock(); });
 	

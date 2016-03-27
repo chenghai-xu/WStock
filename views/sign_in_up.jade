@@ -1,0 +1,64 @@
+div
+  <script type="text/javascript" src="/javascripts/libs/sha.js"></script> 
+  <script type="text/javascript" src="/javascripts/sign_in_up.js"></script> 
+  div(class='modal fade container',id='sign-up', tabindex='-1',role='dialog',aria-labelledby='SignUpModalLabel', aria-hidden='true')
+    div(class='modal-content')
+      div(class='modal-header')
+        button(type='button',class='close',data-dismiss='modal',aria-hidden='true')
+        h4(class='modal-title', id='SignUpModalLabel') 注册账户
+      div(class='modal-body')
+        form(id='form-sign-up',action='/users', method='post',onsubmit='return false', class='form-horizontal',role='form')
+          div(class='form-group')
+            label(class='col-sm-1 control-label') 账号
+            div(class='col-sm-2')
+              input(name='account',class='form-control', required)
+          div(class='form-group')
+            label(class='col-sm-1 control-label') 邮件
+            div(class='col-sm-2')
+              input(name='email',class='form-control', required, type='email')
+          div(class='form-group')
+            label(class='col-sm-1 control-label') 密码
+            div(class='col-sm-2')
+              input(id='password',class='form-control', required, type='password')
+          div(class='form-group')
+            label(class='col-sm-1 control-label') 重复密码
+            div(class='col-sm-2')
+              input(id='password1',class='form-control', required, type='password')
+          div(class='form-group',type='hidden')
+            input(id='sha_pass',name='password',type='hidden')
+          div(class='form-group')
+            div(class='col-sm-1')
+            div(class='col-sm-1')
+              button(type='button',class='btn btn-default',data-dismiss="modal") 关闭
+            div(class='col-sm-1')
+              button(type='submit',class='btn btn-primary') 注册
+            div(class='col-sm-2')    
+              label(id='msg',style='color: red;')
+      div(class='modal-footer')
+
+  div(class='modal fade container',id='sign-in', tabindex='-1',role='dialog',aria-labelledby='SignInModalLabel', aria-hidden='true')
+    div(class='modal-content')
+      div(class='modal-header')
+        button(type='button',class='close',data-dismiss='modal',aria-hidden='true')
+        h4(class='modal-title', id='SignInModalLabel') 登陆账户
+      div(class='modal-body')
+        form(id='form-sign-in',action='/users', method='post',onsubmit='return false', class='form-horizontal',role='form')
+          div(class='form-group')
+            label(class='col-sm-1 control-label') 账号
+            div(class='col-sm-2')
+              input(name='account',class='form-control', required)
+          div(class='form-group')
+            label(class='col-sm-1 control-label') 密码
+            div(class='col-sm-2')
+              input(id='password',class='form-control', required, type='password')
+          div(class='form-group',type='hidden')
+            input(id='sha_pass',name='password',type='hidden')
+          div(class='form-group')
+            div(class='col-sm-1')
+            div(class='col-sm-1')
+              button(type='button',class='btn btn-default',data-dismiss="modal") 关闭
+            div(class='col-sm-1')
+              button(type='submit',class='btn btn-primary') 登陆
+            div(class='col-sm-2')    
+              label(id='msg',style='color: red;')
+      div(class='modal-footer')

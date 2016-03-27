@@ -1,25 +1,33 @@
 extends layout
 block scripts
-  script(type='text/javascript', src='http://cdn.mathjax.org/mathjax/2.5-latest/MathJax.js?config=TeX-MML-AM_HTMLorMML')
+  //script(type='text/javascript', src='http://cdn.mathjax.org/mathjax/2.6-latest/MathJax.js?config=TeX-MML-AM_HTMLorMML')
+  script(type='text/javascript', src='/MathJax-2.6-latest/MathJax.js?config=TeX-MML-AM_HTMLorMML')
   script.
     var notes = !{JSON.stringify(notes)};
   script(type='text/javascript', src='/javascripts/note.js')
+  script(type='text/javascript', src='/javascripts/edit_note.js')
+  //script(type='text/javascript', src='http://cdn.ckeditor.com/4.5.7/full-all/ckeditor.js')
+  script(type='text/javascript', src='/ckeditor_4.5.7_full/ckeditor.js')
 block content
   div(class='container-fluid', style='display: block;')
-    div(class='container text-center')
-     //-for(var x=0; x < notes.length; x++)
-     // div 
-     //   a(href = '/note?uid=#{notes[x].uid}') #{notes[x].title}
-      //div
-      //  div(id='note_title',class='text-center',contenteditable)
-      //    h3 Example.
-      //  div(contenteditable)
-      //    label Tag:
-      //  div(id='editor_preview', style='min-height:100px;max-height: 300px; overflow: scroll;')
-      //  div(id='editor_buffer',style='visibility:hidden;')
-    //div(class='container ', style='display: block;')
-    //  div
-    //    textarea(id='editor_input',class='form-control',style='min-height:100px;max-height:200px;',onkeyup='Preview.Update()') Example: When \(a \ne 0\), there are two solutions to \(ax^2 + bx + c = 0\) and they are \[x = {-b \pm \sqrt{b^2-4ac} \over 2a}.\]
-    //    button(id='preview_note',class='btn btn-default',onclick='Preview.Update()') 预览
-    //    button(id='save_note',class='btn btn-default',onclick='save_note()') 保存
-    //    label(id='msg',style='color: red;')
+
+    div(id='note_control',class = 'nav col-md-12')
+      div(class='col-sm-1')
+        a(href='/note_book',onclick='check_save();return false;') 返回
+      div(class='col-sm-1')
+        button(id='btnChangeNote',class='btn btn-default') 修改
+      div(class='col-sm-1')
+        button(id='btnSaveNote',class='btn btn-default') 保存
+      p(id='msg')
+
+    div(id='display',class='container col-md-12',hidden)
+      div(id='note_display',class='container text-center')
+        div
+          h3(id='dis_title')
+        div(id='dis_content')
+    div(id='edit',class='container col-md-12')
+      div
+        div(class='text-center')
+          textarea(id='edit_title',contenteditable="true") Example
+        div(class='text-center')
+          textarea(id='edit_content',class='form-control',style='min-height:100px;max-height:200px;') Example: When \(a \ne 0\), there are two solutions to \(ax^2 + bx + c = 0\) and they are \[x = {-b \pm \sqrt{b^2-4ac} \over 2a}.\]          

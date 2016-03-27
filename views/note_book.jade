@@ -1,0 +1,20 @@
+extends layout
+block scripts
+  script(type='text/javascript', src='/MathJax-2.6-latest/MathJax.js?config=TeX-MML-AM_HTMLorMML')
+  //script(type='text/javascript', src='http://cdn.mathjax.org/mathjax/2.6-latest/MathJax.js?config=TeX-MML-AM_HTMLorMML')
+  script.
+    var notes = !{JSON.stringify(notes)};
+  script(type='text/javascript', src='/javascripts/note_book.js')
+block content
+  div(class='container-fluid', style='display: block;')
+    div(id='note_control',class = 'container')
+      div(class='col-sm-1')
+        button(id='btnCreateNote',class='btn btn-default') 新建
+      p(id='msg')  
+    div(id='notes_list',class='list-group container')
+      a(href='',class='list-group-item templateItem',hidden)
+        h4(id='title',class='list-group-item-heading')
+        span(id='created',class='badge')
+        //span(id='updated',class='badge')
+        p(id='abstract',class='list-group-item-text')
+

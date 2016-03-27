@@ -1,8 +1,86 @@
+var edit_mode = false;
+var note_changed = false;
 $(document).ready(function () {
 	//Preview.Init('editor_preview','editor_buffer','editor_input'); 
 	//Preview.Update();
-    console.log(notes);
+  MathJax.Hub.Config({
+  TeX: { equationNumbers: { autoNumber: "AMS" }
+   }
+  });
+  /*
+  MathJax.Hub.Register.MessageHook('End PreProcess',
+  function (message) {console.log(message);});
+  */
+  display_note();
+  $("#btnChangeNote").click(function() { toggle_change();});
+  $("#btnSaveNote").click(function() { save_note();});
+  $("#btnSaveNote").prop('disabled', true);
  });
+
+function display_note(){
+    $('#edit').toggle();
+    $('#display').toggle();
+    ExitEditor();
+    $('#dis_title').html(notes[0].title);
+    $('#dis_content').html(notes[0].content);
+    MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+    /*
+    MathJax.Hub.Queue(
+    ["resetEquationNumbers",MathJax.InputJax.TeX]
+    //["PreProcess",MathJax.Hub]
+    //["Reprocess",MathJax.Hub]
+    );
+    */
+    if(note_changed){
+      $("#btnSaveNote").prop('disabled', false);
+    }
+}
+
+function toggle_change(){
+  if(edit_mode){
+    edit_mode = false;
+    $("#btnChangeNote").text("修改");
+    display_note();
+    return;
+  }
+  edit_mode=true;
+  $("#btnChangeNote").text("完成");
+  change_note();
+
+}
+
+function change_note(){
+  $('#display').toggle();
+  $('#edit').toggle();
+  $('#edit_title').html(notes[0].title);
+  $('#edit_content').html(notes[0].content);
+  InitEditor('edit_title','edit_content');
+
+}
+function save_note(){
+    $.ajax({
+        url    : '/note',
+        type   : 'post',
+        data   : notes[0]
+    }).done(function (data) {
+        //console.log(data);
+        $('#msg').text(data.msg);
+        if(data.flag){
+          $("#btnSaveNote").prop('disabled', false);
+        }
+
+    }).fail(function (xhr, err, status) {
+        $('#msg').text(err);
+    });
+}
+
+function check_save(){
+  if(!note_changed){
+    window.location='/note_book';
+    return;
+  }
+  alert('You don not save the changes');
+}
 
 var Preview = {
   delay: 150,        // delay after keystroke before updating
@@ -92,35 +170,4 @@ var Preview = {
 //
 Preview.callback = MathJax.Callback(["CreatePreview",Preview]);
 Preview.callback.autoReset = true;  // make sure it can run more than once
-
-function save_note(){
-	$('#msg').text('Not support now.');
-}
-jQuery.fn.extend({
-    insertAtCaret: function(myValue){
-        return this.each(function(i) {
-            if (document.selection) {
-                //For browsers like Internet Explorer
-                this.focus();
-                var sel = document.selection.createRange();
-                sel.text = myValue;
-                this.focus();
-            }
-            else if (this.selectionStart || this.selectionStart == '0') {
-                //For browsers like Firefox and Webkit based
-                var startPos = this.selectionStart;
-                var endPos = this.selectionEnd;
-                var scrollTop = this.scrollTop;
-                this.value = this.value.substring(0, startPos)+myValue+this.value.substring(endPos,this.value.length);
-                this.focus();
-                this.selectionStart = startPos + myValue.length;
-                this.selectionEnd = startPos + myValue.length;
-                this.scrollTop = scrollTop;
-            } else {
-                this.value += myValue;
-                this.focus();
-            }
-        });
-    }
-});
 

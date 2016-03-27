@@ -36,6 +36,9 @@ var methods_m = {
 
 var hooks_m = {
       beforeValidation: function () {
+        if(this.uid){
+            return;
+        }        
         this.createdAt = moment().add(-8,'hours').toDate() ;
         this.uid  = uuid.v4();
       }
