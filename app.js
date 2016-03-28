@@ -7,6 +7,9 @@ var bodyParser = require('body-parser');
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var session = require('express-session');
+var SQLiteStore = require('connect-sqlite3')(session);
+var sessionstore = new SQLiteStore({table:'sessions',db:'session',dir:'./data/'});
+
 
 var routes = require('./routes/index');
 var users = require('./users/index');
@@ -26,6 +29,7 @@ app.locals.pretty = true;
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+console.log('here');
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(logger('dev'));
 app.use(bodyParser.json());
@@ -33,11 +37,13 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(session({secret: 'cookie_secret',
     name: 'need to change',
-    //store: sessionStore,
+    //store: sessionstore,
     proxy: true,
     resave: true,
-    saveUninitialized: true 
+    cookie:{maxAge: 7 * 24 * 60 * 60 * 1000}, // 1 week
+    saveUninitialized: false 
 }));
+console.log('here');
 users.bind(app);
 authenticate.bind(app);
 notes.bind(app);

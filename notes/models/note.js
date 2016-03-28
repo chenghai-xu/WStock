@@ -3,8 +3,8 @@ var moment = require('moment');
 var orm = require('orm');
 var uuid = require('node-uuid');
 var note_TB = {
-    uid               : { type : 'text', key      : true, required : true},
-    owner             : { type : 'text', required : true, required : true},
+    uid               : { type : 'text', required : true, key      : true},
+    owner             : { type : 'text', required : true                 },
     created           : { type : 'date', required : true, time     : true},
     updated           : { type : 'date', required : true, time     : true},
     title             : { type : 'text', required : true},

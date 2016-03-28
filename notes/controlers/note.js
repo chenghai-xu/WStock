@@ -1,18 +1,17 @@
 module.exports = {
 list   : list,
-create : creat,
+create : create,
 get    : get,
 save   : save
 }
 
-function creat(items_TB, params, callback) {
+function create(items_TB, params, callback) {
     var info ={flag:false,msg:''};
         items_TB.create(params, function (err, items) {
             if(err) {
                 info.flag=false;info.msg=err.msg;
                 return callback(info); 
             }
-            console.log(items);
             info.flag=true;info.msg='新建note成功。';
             info.notes = new Array();
             info.notes[0] = items.serialize();

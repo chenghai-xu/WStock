@@ -58,15 +58,20 @@ function change_note(){
 
 }
 function save_note(){
+    //notes[0].labels=JSON.stringify(['a','b','c','d']);
+    notes[0].labels=['a','b','c','d'];
     $.ajax({
-        url    : '/note',
+        url    : '/note?edit=note',
         type   : 'post',
-        data   : notes[0]
+        data   : JSON.stringify(notes[0]),
+        contentType: 'application/JSON'
+
     }).done(function (data) {
         //console.log(data);
         $('#msg').text(data.msg);
         if(data.flag){
-          $("#btnSaveNote").prop('disabled', false);
+          $("#btnSaveNote").prop('disabled', true);
+          note_changed=false;
         }
 
     }).fail(function (xhr, err, status) {

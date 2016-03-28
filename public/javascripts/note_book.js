@@ -40,7 +40,8 @@ function display_note(parent,data,append){
       $(".templateItem #title").html(data.title);
       $(".templateItem #created").text(data.created.toLocaleString());
       //$(".templateItem>#updated").text(data.updated);
-      $(".templateItem #abstract").html(data.title);
+      //$(".templateItem #abstract").html(data.title);
+      $(".templateItem #abstract").text("tag: "+data.labels.join(' '));
       var note = $(".templateItem").clone();
       note.removeClass("templateItem");
       if(append){
