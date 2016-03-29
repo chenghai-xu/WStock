@@ -1,5 +1,5 @@
 var passport = require('passport');
-var controllers = require('./index').controlers;
+var control = require('./controlers/index');
 var LocalStrategy = require('passport-local').Strategy;
 var _= require('lodash');
 var Users = null;
@@ -20,7 +20,7 @@ function validate(account, password, done) {
 function create_account(req, res, next){
   var params = _.pick(req.body, 'account', 'password','email');
   console.log("create account: %s, %s.",params.account,params.email);
-  controllers.users.create(req.models.users,params,function(created){
+  control.users.create(req.models.users,params,function(created){
     if(!created.flag){
       var info={join:created,login:null};
       console.log(info);
@@ -60,16 +60,12 @@ function init() {
 
 
 function bind(app) {
-    app.use(passport.initialize());
-    app.use(passport.session());
-    app.use(function(req, res, next) {
-        //console.log("session: ",req.session);
-        next();
-    });
     app.use(function(req, res, next) {
         Users = req.models.users;
         next();
     });
+    app.use(passport.initialize());
+    app.use(passport.session());
 }
 
 function auth(req, res, next, callback) {
