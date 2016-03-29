@@ -23,7 +23,7 @@ module.exports = function (app) {
 
 var isAuthenticated = function(req,res,next){
     if(req.isAuthenticated()){ 
-      console.log('access from user: ', req.user);
+      console.log('access from user: ', req.user.account);
     }
     else{
       console.log('access from user: ', 'anonymous');

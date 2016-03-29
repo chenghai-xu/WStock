@@ -31,9 +31,5 @@ function bind(app) {
         req.models.users=database.models.users;
         next();
     });
-    app.use(function(req, res, next) {
-        console.log('Here');
-        next();
-    });
 }
 

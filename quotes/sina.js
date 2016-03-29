@@ -23,6 +23,14 @@ function download_sina(list, callback) {
 function text2object(quotes,text) {
     //var stockListArray = encoding.convert(text,'utf8','gbk').toString().split(';');
     var stockListArray = text.split(';');
+    var returnFlag = false;
+    if(!quotes){
+        quotes = new Array();
+        for(var i=0; i< stockListArray.length;i++){
+            quotes[i]={};
+        }
+        returnFlag = true;
+    }
     for(var i=0; i<stockListArray.length;i++){
         var es = stockListArray[i].split(/_|="|,|"/);
         if(es.length<5) continue;
@@ -42,6 +50,9 @@ function text2object(quotes,text) {
            quotes[i].SellPrice = [parseFloat(es[24]),parseFloat(es[26]),parseFloat(es[28]),parseFloat(es[30]),parseFloat(es[32])];
            quotes[i].SellVolume= [parseFloat(es[23]),parseFloat(es[25]),parseFloat(es[27]),parseFloat(es[29]),parseFloat(es[31])];
            quotes[i].Time      = new Date(es[33]+" "+es[34]);
+    }
+    if(returnFlag){
+        return quotes;
     }
 }
 

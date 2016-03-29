@@ -5,6 +5,9 @@ var sina = require('./sina');
 var http = require('http');
 var moment = require('moment');
 var database = {models:{}};
+var currentQuoteTime = null;
+var lastQuoteTime = null;
+var lastHistoricalTime = null;
 
 function get_sina(req, res, next) {
     if(req.query.list == undefined){
@@ -16,7 +19,7 @@ function get_sina(req, res, next) {
 }
 
 function update(){
-    //update_timeline();
+    update_timeline();
     //update_historical();
     //update_quote();
 }
@@ -27,21 +30,23 @@ function update_timeline(){
             console.log(err);
             return;
         }
-        var lqdt = moment(quotes[0].Time);
-        console.log('Last quote date: %s', lqdt);
+        lastQuoteTime = moment(quotes[0].Time);
+        console.log('Last quote date: %s', lastQuoteTime.format());
         sina.download_sina(code,function(err,data){
             if(err) {
                 console.log(err);
                 return;
             }
             sina.text2object(quotes,data);
-            var cqdt = moment(quotes[0].Time);
-            console.log('Current quote date: %s', cqdt);
+            currentQuoteTime = moment(quotes[0].Time);
+            console.log('Current quote date: %s', currentQuoteTime);
             quotes[0].save(function(err){
                 if(err) console.log(err);
             });
             database.models.historical.aggregate({Code:code}).max('Date').get(function(err,lDate){
-                console.log('Last historical date: ', lDate);
+                lastHistoricalTime = moment(lDate);
+                console.log('Last historical date: ', lastHistoricalTime.format());
+                console.log('Date interval: ', currentQuoteTime.from(lastHistoricalTime));
             });
         });
     });
@@ -79,7 +84,6 @@ function update_quote()
 }
 
 function connect(){
-    return;
     orm.connect("sqlite:./data/IStockInfo.db", function (err, db) {
         if (err) throw err;
         database = db;
