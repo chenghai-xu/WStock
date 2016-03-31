@@ -8,6 +8,8 @@ var database = {models:{}};
 var currentQuoteTime = null;
 var lastQuoteTime = null;
 var lastHistoricalTime = null;
+var currentTime = null;
+var updateHistoricalFlag = true;
 
 function get_sina(req, res, next) {
     if(req.query.list == undefined){
@@ -19,11 +21,48 @@ function get_sina(req, res, next) {
 }
 
 function update(){
-    update_timeline();
+    currentTime = moment();
+    update_timeline(function(){
+        console.log('Last quote date: %s', lastQuoteTime.format());
+        console.log('Last historical date: %s', lastHistoricalTime.format());
+        console.log('Current quote date: %s', currentQuoteTime.format());
+        console.log('Current date/time: %s', currentTime.format());
+        var dfCurrentQuoteAndNow = currentTime.diff(currentQuoteTime,'minutes');
+        var dfCurrentQuoteAndLastHistorical = currentQuoteTime.diff(lastHistoricalTime,'hours');
+        console.log('Diff between current quote date and now: %s', dfCurrentQuoteAndNow);
+        console.log('Diff between current quote date and last historical date: %s', dfCurrentQuoteAndLastHistorical);
+        //Now is in trading time.
+        database.models.timestamp.find({Name:'quote'}).run(function(err,items){
+            if(err){
+                console.log(err);
+                return;
+            }
+            if((items.length<1)||
+                (moment(items[0].Write).diff(currentQuoteTime,'minutes')<2)){
+                update_quote();
+                return;
+            }
+            console.log('Not need to update quote');
+
+        });
+        database.models.timestamp.find({Name:'historical'}).run(function(err,items){
+            if(err){
+                console.log(err);
+                return;
+            }
+            if((items.length<1)||
+                (moment(items[0].Write).diff(currentQuoteTime,'hours')>9)){
+                //update_historical();
+                return;
+            }
+            console.log('Not need to update historical');
+
+        });
+    });
     //update_historical();
     //update_quote();
 }
-function update_timeline(){
+function update_timeline(callback){
     var code = 'SH000001';
     database.models.current_quote.find({Code:code}).run(function(err,quotes){
         if(err){
@@ -31,7 +70,6 @@ function update_timeline(){
             return;
         }
         lastQuoteTime = moment(quotes[0].Time);
-        console.log('Last quote date: %s', lastQuoteTime.format());
         sina.download_sina(code,function(err,data){
             if(err) {
                 console.log(err);
@@ -39,14 +77,12 @@ function update_timeline(){
             }
             sina.text2object(quotes,data);
             currentQuoteTime = moment(quotes[0].Time);
-            console.log('Current quote date: %s', currentQuoteTime);
             quotes[0].save(function(err){
                 if(err) console.log(err);
             });
             database.models.historical.aggregate({Code:code}).max('Date').get(function(err,lDate){
                 lastHistoricalTime = moment(lDate);
-                console.log('Last historical date: ', lastHistoricalTime.format());
-                console.log('Date interval: ', currentQuoteTime.from(lastHistoricalTime));
+                return callback();
             });
         });
     });
@@ -79,6 +115,26 @@ function update_quote()
                     if(err) console.log(err);
                 });
             }
+            database.models.timestamp.find({Name:'quote'}).run(function(err,items){
+                if(err){
+                    console.log(err);
+                    return;
+                }
+                if(items.length<1){
+                    database.models.timestamp.create({Name:'quote'},function(error,results){
+                        if(error){
+                            console.log(error);
+                        }
+                    });
+                    return;
+                }
+                items[0].Write = moment();
+                items[0].save(function(err){
+                    if(err){
+                        console.log(err);
+                    }
+                });
+            });
         });
     });
 }
@@ -90,6 +146,7 @@ function connect(){
         database.models.current_quote = models.current_quote(db);
         database.models.historical = models.historical(db);
         database.models.index_code = models.index_code(db);
+        database.models.timestamp = models.timestamp(db);
         db.sync(function(err) { 
             if (err) throw err;
             database.models.current_quote.count(function (err, count) {
@@ -103,6 +160,10 @@ function connect(){
             database.models.historical.count(function (err, count) {
                 if (err) {console.log(err);return;}
                 console.log("Init models of Historical. count: %s",count);
+            });
+            database.models.timestamp.count(function (err, count) {
+                if (err) {console.log(err);return;}
+                console.log("Init models of timestamp. count: %s",count);
             });
             update();
         });
