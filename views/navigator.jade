@@ -4,19 +4,20 @@ nav(class='navbar navbar-default navbar-static-top',role='navigation')
     img(src='/favicon.ico',style='height:32px; width:32px;',href='/')
     //a(class='navbar-band',href='#') Express
   div
-    ul(class = 'nav navbar-nav navbar-left nav-pills')
-      li
-        a(href = '/') 主页
-      li
-        a(href = '#custom-stock-infos') 自选股
-      li
-        a(href = '#portfolios') 资产组合
-      li
-        a(href = '#basci-options') 提醒设置
-      li
-        a(href = '#backup') 数据备份
-      li
-        a(href = '/note_book') 笔记
+    block custom_navigator
+      ul(class = 'nav navbar-nav navbar-left nav-pills')
+        li
+          a(href = '/') 主页
+        li
+          a(href = '#custom-stock-infos') 自选股
+        li
+          a(href = '#portfolios') 资产组合
+        li
+          a(href = '#basci-options') 提醒设置
+        li
+          a(href = '#backup') 数据备份
+        li
+          a(href = '/note_book') 笔记
     ul(class = 'nav navbar-nav navbar-right nav-pills')
       if (user.auth==false)
         li

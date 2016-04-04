@@ -8,17 +8,27 @@ block scripts
   script(type='text/javascript', src='/javascripts/edit_note.js')
   //script(type='text/javascript', src='http://cdn.ckeditor.com/4.5.7/full-all/ckeditor.js')
   script(type='text/javascript', src='/ckeditor_4.5.7_full/ckeditor.js')
+block custom_navigator
+  ul(class = 'nav navbar-nav navbar-left nav-pills')
+    li
+      a(href = '/') 主页
+    li
+      a(href='/note_book',onclick='check_save();return false;') 笔记
+    li
+      a(href = '#',id='btnChangeNote',onclick='return false;') 修改
+    li
+      a(href = '#',id='btnSaveNote',onclick='return false;') 保存
 block content
   div(class='container-fluid', style='display: block;')
 
-    div(id='note_control',class = 'nav col-md-12')
-      div(class='col-sm-1')
-        a(href='/note_book',onclick='check_save();return false;') 返回
-      div(class='col-sm-1')
-        button(id='btnChangeNote',class='btn btn-default') 修改
-      div(class='col-sm-1')
-        button(id='btnSaveNote',class='btn btn-default') 保存
-      p(id='msg')
+    //div(id='note_control',class = 'nav col-md-12')
+    //  div(class='col-sm-1')
+    //    //a(href='/note_book',onclick='check_save();return false;') 返回
+    //  div(class='col-sm-1')
+    //    //button(id='btnChangeNote',class='btn btn-default') 修改
+    //  div(class='col-sm-1')
+    //    //button(id='btnSaveNote',class='btn btn-default') 保存
+    //  p(id='msg')
 
     div(id='display',class='container col-md-12',hidden)
       div(id='note_display',class='container')
@@ -30,4 +40,4 @@ block content
         div(class='text-center')
           textarea(id='edit_title',contenteditable="true") Example
         div(class='text-center')
-          textarea(id='edit_content',class='form-control',style='min-height:100px;max-height:200px;') Example: When \(a \ne 0\), there are two solutions to \(ax^2 + bx + c = 0\) and they are \[x = {-b \pm \sqrt{b^2-4ac} \over 2a}.\]          
+          textarea(id='edit_content',class='form-control') Example: When \(a \ne 0\), there are two solutions to \(ax^2 + bx + c = 0\) and they are \[x = {-b \pm \sqrt{b^2-4ac} \over 2a}.\]          

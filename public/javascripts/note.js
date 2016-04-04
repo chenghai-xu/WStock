@@ -14,7 +14,7 @@ $(document).ready(function () {
   display_note();
   $("#btnChangeNote").click(function() { toggle_change();});
   $("#btnSaveNote").click(function() { save_note();});
-  $("#btnSaveNote").prop('disabled', true);
+  $("#btnSaveNote").hide();
  });
 
 function display_note(){
@@ -32,7 +32,9 @@ function display_note(){
     );
     */
     if(note_changed){
-      $("#btnSaveNote").prop('disabled', false);
+      //$("#btnSaveNote").prop('disabled', false);
+      $("#btnSaveNote").show();
+
     }
 }
 
@@ -68,14 +70,18 @@ function save_note(){
 
     }).done(function (data) {
         //console.log(data);
-        $('#msg').text(data.msg);
+        //$('#msg').text(data.msg);
+        alert(data.msg);
         if(data.flag){
-          $("#btnSaveNote").prop('disabled', true);
+          $("#btnSaveNote").hide();
+          //$("#btnSaveNote").prop('disabled', true);
           note_changed=false;
         }
 
     }).fail(function (xhr, err, status) {
-        $('#msg').text(err);
+        //$('#msg').text(err);
+        alert(data.msg);
+
     });
 }
 
