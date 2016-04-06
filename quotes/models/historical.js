@@ -27,7 +27,7 @@ var methods_m = {
 
 var hooks_m = {
     beforeValidation: function () {
-        this.Date = moment(this.Date).add(-8,'hours').toDate() ;
+        //this.Date = moment(this.Date).add(-8,'hours').toDate() ;
     }
 };
 

@@ -33,12 +33,14 @@ var hooks_m = {
         if(this.uid){
             return;
         }
-        this.created = moment().add(-8,'hours').toDate() ;
+        //this.created = moment().add(-8,'hours').toDate() ;
+        this.created = moment().toDate() ;
         this.updated = this.created;
         this.uid  = uuid.v4();
     },
     beforeSave: function(){
-        this.updated = moment().add(-8,'hours').toDate() ;
+        //this.updated = moment().add(-8,'hours').toDate() ;
+        this.updated = moment().toDate() ;
     }
 };
 

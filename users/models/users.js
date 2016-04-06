@@ -39,7 +39,8 @@ var hooks_m = {
         if(this.uid){
             return;
         }        
-        this.createdAt = moment().add(-8,'hours').toDate() ;
+        //this.createdAt = moment().add(-8,'hours').toDate() ;
+        this.createdAt = moment().toDate() ;
         this.uid  = uuid.v4();
       }
 };

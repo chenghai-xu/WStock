@@ -49,7 +49,7 @@ var hooks_m = {
         //Description: The create/update action will add 8 hours to the datetime,
         //while selected datetime does not add -8 hours. 
         //Fixed: So before create/update action we add -8 hours to balance it.
-        this.Time = moment(this.Time).add(-8,'hours').toDate() ;
+        //this.Time = moment(this.Time).add(-8,'hours').toDate() ;
     }
 };
 

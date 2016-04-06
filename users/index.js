@@ -4,7 +4,7 @@ var models = require('./models/index');
 var control = require('./controlers/index');
 var database = {models:{}};
 function connect(){
-    orm.connect("sqlite:./data/users.db", function (err, db) {
+    orm.connect("sqlite:./data/users.db?timezone=Asia/Shanghai", function (err, db) {
         if (err) throw err;
         database = db;
         database.models.users = models.users(db);

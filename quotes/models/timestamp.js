@@ -7,7 +7,6 @@ var columns = {
     Write            : { type : 'date', required : true, time    : true},
     Read             : { type : 'date', required : true, time    : true}
 };
-
 var methods_m = {
     serialize: function () {
         return {
@@ -26,7 +25,7 @@ var hooks_m = {
         //while selected datetime does not add -8 hours. 
         //Fixed: So before create/update action we add -8 hours to balance it.
         if(!this.Create){
-            this.Create = moment().add(-8,'hours').toDate() ;
+            this.Create = moment().toDate();
             this.Write = this.Create;
             this.Read = this.Create;
         }

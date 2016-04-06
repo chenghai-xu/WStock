@@ -6,7 +6,7 @@ var msg2view = require('../views/msg2view');
 var database = {models:{}};
 
 function connect(){
-    orm.connect("sqlite:./data/notes.db", function (err, db) {
+    orm.connect("sqlite:./data/notes.db?timezone=Asia/Shanghai", function (err, db) {
         if (err) throw err;
         database = db;
         database.models.note = models.note(db);

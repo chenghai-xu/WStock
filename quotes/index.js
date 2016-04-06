@@ -23,19 +23,22 @@ function get_sina(req, res, next) {
 function update(){
     currentTime = moment();
     update_timeline(function(){
-        console.log('Last quote date: %s', lastQuoteTime.format());
+        console.log('Last quote time: %s', lastQuoteTime.format());
         console.log('Last historical date: %s', lastHistoricalTime.format());
-        console.log('Current quote date: %s', currentQuoteTime.format());
-        console.log('Current date/time: %s', currentTime.format());
+        console.log('Current quote time: %s', currentQuoteTime.format());
+        console.log('Current time: %s', currentTime.format());
         var dfCurrentQuoteAndNow = currentTime.diff(currentQuoteTime,'minutes');
         var dfCurrentQuoteAndLastHistorical = currentQuoteTime.diff(lastHistoricalTime,'hours');
-        console.log('Diff between current quote date and now: %s', dfCurrentQuoteAndNow);
-        console.log('Diff between current quote date and last historical date: %s', dfCurrentQuoteAndLastHistorical);
+        console.log('Diff between current quote time and now: %s minutes', dfCurrentQuoteAndNow);
+        console.log('Diff between current quote time and last historical date: %s hours', dfCurrentQuoteAndLastHistorical);
         //Now is in trading time.
         database.models.timestamp.find({Name:'quote'}).run(function(err,items){
             if(err){
                 console.log(err);
                 return;
+            }
+            if(items.length>0){
+                console.log('Last write of quote time: %s',items[0].Write);
             }
             if((items.length<1)||
                 (moment(items[0].Write).diff(currentQuoteTime,'minutes')<2)){
@@ -49,6 +52,9 @@ function update(){
             if(err){
                 console.log(err);
                 return;
+            }
+            if(items.length>0){
+                console.log('Last write of historical  time: %s',items[0].Write);
             }
             if((items.length<1)||
                 (moment(items[0].Write).diff(currentQuoteTime,'hours')>9)){
@@ -128,7 +134,7 @@ function update_quote()
                     });
                     return;
                 }
-                items[0].Write = moment();
+                items[0].Write = moment().toDate() ;
                 items[0].save(function(err){
                     if(err){
                         console.log(err);
@@ -140,7 +146,7 @@ function update_quote()
 }
 
 function connect(){
-    orm.connect("sqlite:./data/IStockInfo.db", function (err, db) {
+    orm.connect("sqlite:./data/IStockInfo.db?timezone=Asia/Shanghai", function (err, db) {
         if (err) throw err;
         database = db;
         database.models.current_quote = models.current_quote(db);
