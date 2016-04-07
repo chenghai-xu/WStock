@@ -41,7 +41,7 @@ function remove(){
     });
 }
 
-orm.connect("sqlite:./data/IStockInfo.db?debug=true&timezone=Asia/Shanghai", function (err, db) {
+orm.connect("sqlite:./data/IStockInfo.db?debug=true", function (err, db) {
     if (err) throw err;
 
     database=db;

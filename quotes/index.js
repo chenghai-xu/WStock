@@ -146,7 +146,7 @@ function update_quote()
 }
 
 function connect(){
-    orm.connect("sqlite:./data/IStockInfo.db?timezone=Asia/Shanghai", function (err, db) {
+    orm.connect(settings.quotes, function (err, db) {
         if (err) throw err;
         database = db;
         database.models.current_quote = models.current_quote(db);

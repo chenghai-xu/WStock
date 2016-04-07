@@ -3,9 +3,9 @@ var moment = require('moment');
 var orm = require('orm');
 var columns = {
     Name             : { type : 'text', key      : true, required : true},
-    Create           : { type : 'date', required : true, time    : true},
-    Write            : { type : 'date', required : true, time    : true},
-    Read             : { type : 'date', required : true, time    : true}
+    Create           : { type : 'date', required : true},
+    Write            : { type : 'date', required : true},
+    Read             : { type : 'date', required : true}
 };
 var methods_m = {
     serialize: function () {

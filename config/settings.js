@@ -1,17 +1,9 @@
 var path       = require('path');
 
 var settings = {
-  path       : path.normalize(path.join(__dirname, '..')),
-  port       : process.env.PORT || 7891,
-  database   : 'sqlite: ./data/users.db'
-  //database   : {
-  //  protocol : "sqlite", // or "mysql"
-  //  query    : { pool: true },
-  //  host     : "127.0.0.1",
-  //  database : "users.db"
-  //  //user     : "anontxt",
-  //  //password : "apassword"
-  //}
+  users       : "sqlite:./data/users.db?debug=false",
+  notes       : "sqlite:./data/notes.db?debug=false",
+  quotes      : "sqlite:./data/quotes.db?debug=false"
 };
 
 module.exports = settings;
