@@ -58,5 +58,71 @@ function text2object(quotes,text) {
 
 module.exports = {
     download_sina : download_sina,
+    historical_163 : historical_163,
     text2object : text2object
+}
+/*
+string url = string.Format(@"http://quotes.money.163.com/service/chddata.html?code={0}{1}&start={2}{3}{4}&end={5}{6}{7}&fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;CHG;PCHG;VOTURNOVER;VATURNOVER",
+    postfix, lCode, 
+    tStart.Year, tStart.Month.ToString().PadLeft(2, '0'), tStart.Day.ToString().PadLeft(2, '0'),
+    tStop.Year, tStop.Month.ToString().PadLeft(2, '0'), tStop.Day.ToString().PadLeft(2, '0'));
+*/
+
+function historical_163(stock,start,end,callback) {
+  var prefix = stock.substring(0,2).toUpperCase();
+  var code = null;
+  if(prefix=='SH'){
+    code = '0'+ stock.substring(2,8);
+  }
+  else if(prefix=='SZ'){
+    code = '1'+ stock.substring(2,8);
+  }
+  else{
+  }
+  var url ='http://quotes.money.163.com/service/chddata.html';
+  var query = '?';
+  query += 'code=' + code +'&';
+  query += 'start=' + start.format('YYYYMMDD') +'&';
+  query += 'end=' + end.format('YYYYMMDD') +'&';
+  query += 'fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;CHG;PCHG;VOTURNOVER;VATURNOVER';
+  url += query;
+  console.log('Download historical: ',url);
+
+  var cont=new Buffer('');
+  http.get(url, function(res,msg){
+      res.on('data',function(data){
+	cont=Buffer.concat([cont,data]);
+	});
+      res.on('end',function(){
+	console.log('Download historical success.');
+	callback(decode_historical_163(stock,encoding.convert(cont,'utf8','gbk').toString()));
+	});
+      res.on('error',function(){
+	console.log('Download historical error.');
+	callback(decode_historical_163(stock,encoding.convert(cont,'utf8','gbk').toString()));
+	});
+      });
+}
+
+function decode_historical_163(code,data){
+  var rows = data.split("\n");
+  var historicals = new Array();
+  if(rows.length<2){
+    return historicals;
+  }
+  for(var i=1; i<rows.length;i++){
+    var row = rows[i].split(',');
+    if(row.length<11){
+      continue;
+    }
+    historicals.push({Code:code,
+	Date: new Date(row[0]),
+	Open: parseFloat(row[6]),
+	High: parseFloat(row[4]),
+	Low:  parseFloat(row[5]),
+	Close: parseFloat(row[3]),
+	Volume: parseFloat(row[10])
+	});
+  }
+  return historicals;
 }

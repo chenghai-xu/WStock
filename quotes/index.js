@@ -5,11 +5,6 @@ var sina = require('./sina');
 var http = require('http');
 var moment = require('moment');
 var database = {models:{}};
-var currentQuoteTime = null;
-var lastQuoteTime = null;
-var lastHistoricalTime = null;
-var currentTime = null;
-var updateHistoricalFlag = true;
 
 function get_sina(req, res, next) {
     if(req.query.list == undefined){
@@ -21,76 +16,89 @@ function get_sina(req, res, next) {
 }
 
 function update(){
-    currentTime = moment();
-    update_timeline(function(){
-        console.log('Last quote time: %s', lastQuoteTime.format());
-        console.log('Last historical date: %s', lastHistoricalTime.format());
-        console.log('Current quote time: %s', currentQuoteTime.format());
-        console.log('Current time: %s', currentTime.format());
-        var dfCurrentQuoteAndNow = currentTime.diff(currentQuoteTime,'minutes');
-        var dfCurrentQuoteAndLastHistorical = currentQuoteTime.diff(lastHistoricalTime,'hours');
-        console.log('Diff between current quote time and now: %s minutes', dfCurrentQuoteAndNow);
-        console.log('Diff between current quote time and last historical date: %s hours', dfCurrentQuoteAndLastHistorical);
-        //Now is in trading time.
-        database.models.timestamp.find({Name:'quote'}).run(function(err,items){
-            if(err){
-                console.log(err);
-                return;
-            }
-            if(items.length>0){
-                console.log('Last write of quote time: %s',items[0].Write);
-            }
-            if((items.length<1)||
-                (moment(items[0].Write).diff(currentQuoteTime,'minutes')<2)){
-                update_quote();
-                return;
-            }
-            console.log('Not need to update quote');
-
-        });
-        database.models.timestamp.find({Name:'historical'}).run(function(err,items){
-            if(err){
-                console.log(err);
-                return;
-            }
-            if(items.length>0){
-                console.log('Last write of historical  time: %s',items[0].Write);
-            }
-            if((items.length<1)||
-                (moment(items[0].Write).diff(currentQuoteTime,'hours')>9)){
-                //update_historical();
-                return;
-            }
-            console.log('Not need to update historical');
-
-        });
-    });
-    //update_historical();
-    //update_quote();
+    update_historical_control();
+    update_quote_control();
 }
-function update_timeline(callback){
+
+function update_netvalue_control(){
+    var code = 'SH000001';
+    database.models.current_quote.find({Code:code}).run(function(err,quotes){
+        var currentNetValueTime = moment(quotes[0].Time);
+	var lastNetValueTime = moment().add(-1,'days');
+	console.log('Last net value day: %s', lastNetValueTime.format());
+	console.log('Current net value day: %s', currentNetValueTime.format());
+    });
+}
+function update_quote_control(){
     var code = 'SH000001';
     database.models.current_quote.find({Code:code}).run(function(err,quotes){
         if(err){
             console.log(err);
+	    setTimeout(update_quote_control,60*1000);
             return;
         }
-        lastQuoteTime = moment(quotes[0].Time);
+        var lastQuoteTime = moment(quotes[0].Time);
         sina.download_sina(code,function(err,data){
             if(err) {
+	    	setTimeout(update_quote_control,60*1000);
                 console.log(err);
                 return;
             }
             sina.text2object(quotes,data);
-            currentQuoteTime = moment(quotes[0].Time);
-            quotes[0].save(function(err){
-                if(err) console.log(err);
-            });
-            database.models.historical.aggregate({Code:code}).max('Date').get(function(err,lDate){
-                lastHistoricalTime = moment(lDate);
-                return callback();
-            });
+            var currentQuoteTime = moment(quotes[0].Time);
+	    console.log('Last quote time: %s', lastQuoteTime.format());
+	    console.log('Current quote time: %s', currentQuoteTime.format());
+            var dfQuotes = currentQuoteTime.diff(lastQuoteTime,'seconds');
+	    if(dfQuotes>20){
+	    	console.log('Quote update is need.');
+		update_quote();
+	    }
+	    var currentQuoteHours = currentQuoteTime.hour() + currentQuoteTime.minute()/60.0+currentQuoteTime.second()/3600.0;
+	    if(currentQuoteHours>15&&dfQuotes==0){
+	    	var dt = moment();
+	    	var h =  23 - dt.hour()+9;
+	    	var m =  59 - dt.minute()+20;
+	    	var s =  60 - dt.second();
+	    	console.log('Quote update will be chekced again at next 9:20 AM, after %s hours, %s minutes, %s seconds',h,m,s);
+	  	setTimeout(update_quote_control,(h*3600+m*60+s)*1000);
+		return;
+	    }
+	    console.log('Quote update will be chekced again 20 seconds.');
+	    setTimeout(update_quote_control,20*1000);
         });
+    });
+}
+function update_historical_control(){
+  var code = 'SH000001';
+  database.models.historical.aggregate({Code:code}).max('Date').get(function(err,lDate){
+        if(err){
+            console.log(err);
+	    setTimeout(update_historical_control,60*1000);
+	    return;
+	}
+      	var lastHistoricalTime = moment(lDate);
+	var start = moment().add(-20,'days');
+	var end = moment();
+	sina.historical_163(code,start,end,function(historicals){
+	  if(historicals.length<1){
+	  	setTimeout(update_historical_control,60*1000);
+	  	return;
+	  }
+	  var currentHistoricalTime = moment(historicals[0].Date);
+	  console.log('Last historical time: ', lastHistoricalTime.format('YYYY-MM-DD'));
+	  console.log('Current historical time: ', currentHistoricalTime.format('YYYY-MM-DD'));
+	  if(lastHistoricalTime == currentHistoricalTime){
+	  	console.log('Historical need not update.');
+	  }
+	  var dt = moment();
+	  var h =  23 - dt.hour();
+	  var m =  59 - dt.minute();
+	  var s =  60 - dt.second();
+	  console.log('Historical update is need.');
+	  console.log('Historical update will be chekced again at next 00:01 AM, after %s hours, %s minutes, %s seconds',h,m,s);
+	  update_historical();
+	  setTimeout(update_historical_control,(h*3600+m*60+s)*1000);
+	  });
     });
 }
 
@@ -115,32 +123,12 @@ function update_quote()
                 return;
             }
             sina.text2object(quotes,data);
-            console.log('Update quote, time: ', quotes[0].Time);
             for(var i=0; i< quotes.length; i++){
                 quotes[i].save(function(err){
                     if(err) console.log(err);
                 });
             }
-            database.models.timestamp.find({Name:'quote'}).run(function(err,items){
-                if(err){
-                    console.log(err);
-                    return;
-                }
-                if(items.length<1){
-                    database.models.timestamp.create({Name:'quote'},function(error,results){
-                        if(error){
-                            console.log(error);
-                        }
-                    });
-                    return;
-                }
-                items[0].Write = moment().toDate() ;
-                items[0].save(function(err){
-                    if(err){
-                        console.log(err);
-                    }
-                });
-            });
+            console.log('Update quote success.');
         });
     });
 }
