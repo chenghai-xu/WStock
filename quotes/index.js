@@ -49,7 +49,7 @@ function update_quote_control(){
 	    console.log('Last quote time: %s', lastQuoteTime.format());
 	    console.log('Current quote time: %s', currentQuoteTime.format());
             var dfQuotes = currentQuoteTime.diff(lastQuoteTime,'seconds');
-	    if(dfQuotes>20){
+	    if(dfQuotes!=0){
 	    	console.log('Quote update is need.');
 		update_quote();
 	    }
@@ -59,12 +59,12 @@ function update_quote_control(){
 	    	var h =  23 - dt.hour()+9;
 	    	var m =  59 - dt.minute()+20;
 	    	var s =  60 - dt.second();
-	    	console.log('Quote update will be chekced again at next 9:20 AM, after %s hours, %s minutes, %s seconds',h,m,s);
+	    	console.log('Quote update will be checked again at next 9:20 AM, after %s hours, %s minutes, %s seconds',h,m,s);
 	  	setTimeout(update_quote_control,(h*3600+m*60+s)*1000);
 		return;
 	    }
-	    console.log('Quote update will be chekced again 20 seconds.');
-	    setTimeout(update_quote_control,20*1000);
+	    console.log('Quote update will be checked again after 60 seconds.');
+	    setTimeout(update_quote_control,60*1000);
         });
     });
 }
@@ -95,7 +95,7 @@ function update_historical_control(){
 	  var m =  59 - dt.minute();
 	  var s =  60 - dt.second();
 	  console.log('Historical update is need.');
-	  console.log('Historical update will be chekced again at next 00:01 AM, after %s hours, %s minutes, %s seconds',h,m,s);
+	  console.log('Historical update will be checked again at next 00:01 AM, after %s hours, %s minutes, %s seconds',h,m,s);
 	  update_historical();
 	  setTimeout(update_historical_control,(h*3600+m*60+s)*1000);
 	  });
