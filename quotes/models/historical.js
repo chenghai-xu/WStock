@@ -27,14 +27,12 @@ var methods_m = {
 
 var hooks_m = {
     beforeValidation: function () {
-        //this.Date = moment(this.Date).add(-8,'hours').toDate() ;
     }
 };
 
 var validations_m = {
     Code: [
-        orm.enforce.ranges.length(4, 16, '代码长度不合法。'),
-        orm.enforce.unique({ignoreCase: true})
+        orm.enforce.ranges.length(4, 16, '代码长度不合法。')
     ]
 };
 

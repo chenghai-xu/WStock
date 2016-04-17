@@ -19,23 +19,32 @@ var columns = {
 var methods_m = {
     serialize: function () {
         return {
-            uid      : this.uid      ,
-            Portfolio: this.Portfolio      ,
+            uid              : this.uid       ,
+            Portfolio        : this.Portfolio ,
+            Time             : this.Time      ,
+            Code             : this.Code      ,
+            Name             : this.Name      ,
+            Type             : this.Type      ,
+            Price            : this.Price     ,
+            Volume           : this.Volume    ,
+            Fee              : this.Fee       ,
+            Amount           : this.Amount    ,
+            Flag             : this.Flag      
         };
     }
 };
 
 var hooks_m = {
     beforeValidation: function () {
-	if(!this.uid){
+    if(!this.uid){
             this.uid = uuid.v4();
-	}
-	if(this.Type == 'SELL' || this.Type == 'DIVIDEN'){
-	    this.Amount = this.Price * this.Volume - this.Fee;
-	}
-	else if(this.Type == 'BUY'){
-	    this.Amount = this.Price * this.Volume + this.Fee;
-	}
+    }
+    if(this.Type == 'SELL' || this.Type == 'DIVIDEN'){
+        this.Amount = this.Price * this.Volume - this.Fee;
+    }
+    else if(this.Type == 'BUY'){
+        this.Amount = this.Price * this.Volume + this.Fee;
+    }
     },
     beforeSave: function(){
     }

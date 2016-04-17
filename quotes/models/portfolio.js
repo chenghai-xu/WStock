@@ -13,8 +13,11 @@ var columns = {
 var methods_m = {
     serialize: function () {
         return {
-            uid      : this.uid      ,
-            Owner: this.Owner      ,
+            uid              : uid             ,
+            Owner            : Owner           ,
+            Name             : Name            ,
+            Current_Position : Current_Position,
+            Current_NV_Time  : Current_NV_Time 
         };
     }
 };

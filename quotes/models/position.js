@@ -19,8 +19,17 @@ var columns = {
 var methods_m = {
     serialize: function () {
         return {
-            uid      : this.uid      ,
-            Portfolio: this.Portfolio      ,
+            uid              : uid           ,
+            Portfolio        : Portfolio     ,
+            Code             : Code          ,
+            Name             : Name          ,
+            Volume           : Volume        ,
+            Current_Price    : Current_Price ,
+            Current_Amount   : Current_Amount,
+            Cost_Price       : Cost_Price    ,
+            Cost_Amount      : Cost_Amount   ,
+            Gain             : Gain          ,
+            Gain_Rate        : Gain_Rate     
         };
     }
 };
