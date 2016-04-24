@@ -6,7 +6,7 @@ module.exports = {
 update_control : update_control,
 update : update,
 set_db : set_db
-}
+};
 function set_db(db){
     database=db;
 }
