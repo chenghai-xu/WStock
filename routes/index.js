@@ -19,6 +19,7 @@ module.exports = function (app) {
   app.post('/note',notes.save_note);
   app.get('/edit_note',edit_note);
   app.post('/edit_note',notes.create_note);
+  app.get('/jupyter',jupyter);
 };
 
 var isAuthenticated = function(req,res,next){
@@ -56,4 +57,6 @@ function logout(req, res, next) {
 function render(req,res,next,view){
     res.render(view,msg2view.msg(req));
 }
-
+function jupyter(req, res, next) {
+  render(req,res,next,'jupyter');
+}
