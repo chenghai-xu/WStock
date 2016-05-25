@@ -8,3 +8,5 @@
 node_modules
 data
 $Recycle.Bin
+public/MathJax-2.6-latest
+public/ckeditor_4.5.7_full
