@@ -1,52 +1,54 @@
-table(id='stocksTable',class='stocksTable table table-condensed table-striped table-hover')
-  tr#head
-    //th(width='14px')
-    //th(width='26px') 标记 
-    th(style='white-space: nowrap;width:60px') 股票名称
-    th(style='white-space: nowrap;width:60px') 股票代码
-    th(style='white-space: nowrap;width:60px') 涨跌幅
-    th(style='white-space: nowrap;width:60px') 当前价
-    th(style='white-space: nowrap;width:60px') 涨跌点
-    th(style='white-space: nowrap;width:60px') 今开
-    th(style='white-space: nowrap;width:60px') 昨收
-    th(style='white-space: nowrap;width:60px') 最高
-    th(style='white-space: nowrap;width:60px') 最低
-    th(style='white-space: nowrap;width:40px') 操作
-  tr(id='template',class='templateRow')
-    //td(class='dragHandle',title='拖动')
-    //td
-    //  div(class='flag',title='标记股票')
-    td(style='white-space: nowrap;')
-      div(style='cursor: pointer; position: relative;',title='点击修改')
-        span(class='stockName')
-        input(id='stockName',type='text',hidden, style='width: 100%;')
-    td
-      div
-        span(class='stockCode',style='cursor: pointer;',title='点击行情')
-    td
+table(class='stocksTable table table-condensed table-striped table-hover')
+  thead
+    tr
+      //th(width='14px')
+      //th(width='26px') 标记 
+      th(style='white-space: nowrap;width:60px') 股票名称
+      th(style='white-space: nowrap;width:60px') 股票代码
+      th(style='white-space: nowrap;width:60px') 涨跌幅
+      th(style='white-space: nowrap;width:60px') 当前价
+      th(style='white-space: nowrap;width:60px') 涨跌点
+      th(style='white-space: nowrap;width:60px') 今开
+      th(style='white-space: nowrap;width:60px') 昨收
+      th(style='white-space: nowrap;width:60px') 最高
+      th(style='white-space: nowrap;width:60px') 最低
+      th(style='white-space: nowrap;width:40px') 操作
+  tbody(id='stocksTable')
+    tr(id='template',class='templateRow')
+      //td(class='dragHandle',title='拖动')
+      //td
+      //  div(class='flag',title='标记股票')
+      td(style='white-space: nowrap;')
+        div(style='cursor: pointer; position: relative;',title='点击修改')
+          span(class='stockName')
+          input(id='stockName',type='text',hidden, style='width: 100%;')
+      td
         div
-          span(class='stockChangeRate')
-    td
-      div
-        span(class='stockPrice')
-    td
-      div
-        span(class='stockChangeAmt')
-    td
-      div
-        span(class='stockOpenPrice')
-    td
-      div
-        span(class='stockClosePrice')
-    td
-      div
-        span(class='stockMaxPrice')
-    td
-      div
-        span(class='stockMinPrice')
-    td 
-      div(class='delete',style='cursor: pointer; position: relative;',title="删除股票")
-        br
+          span(class='stockCode',style='cursor: pointer;',title='点击行情')
+      td
+          div
+            span(class='stockChangeRate')
+      td
+        div
+          span(class='stockPrice')
+      td
+        div
+          span(class='stockChangeAmt')
+      td
+        div
+          span(class='stockOpenPrice')
+      td
+        div
+          span(class='stockClosePrice')
+      td
+        div
+          span(class='stockMaxPrice')
+      td
+        div
+          span(class='stockMinPrice')
+      td 
+        div(class='delete',style='cursor: pointer; position: relative;',title="删除股票")
+          br
 
 div(id='custom-stock-control',class='custom-stock-control')
   div(class='col-sm-1')

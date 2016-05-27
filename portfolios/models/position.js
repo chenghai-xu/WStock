@@ -3,9 +3,9 @@ var moment = require('moment');
 var orm = require('orm');
 var uuid = require('node-uuid');
 var columns = {
-    uid              : { type : 'text', required : true, key : true},
+    //uid              : { type : 'text', required : true, key : true},
     Portfolio        : { type : 'text', required : true, key : true},
-    Code             : { type : 'text', required : true},
+    Code             : { type : 'text', required : true, key : true},
     Name             : { type : 'text', required : true},
     Volume           : { type : 'number', required : true},
     Current_Price    : { type : 'number'},
@@ -19,7 +19,7 @@ var columns = {
 var methods_m = {
     serialize: function () {
         return {
-            uid              : uid           ,
+            //uid              : uid           ,
             Portfolio        : Portfolio     ,
             Code             : Code          ,
             Name             : Name          ,
@@ -36,9 +36,9 @@ var methods_m = {
 
 var hooks_m = {
     beforeValidation: function () {
-	if(!this.uid){
-            this.uid = uuid.v4();
-	}
+	//if(!this.uid){
+            //this.uid = uuid.v4();
+	//}
     },
     beforeSave: function(){
     }

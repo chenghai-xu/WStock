@@ -1,11 +1,16 @@
 var orm = require("orm");
+var setting = require("./config/settings");
+
 var timestamp = require("./quotes/models/timestamp");
 var historical = require("./quotes/models/historical");
-var portfolio = require("./quotes/models/portfolio");
-var order = require("./quotes/models/order");
-var position = require("./quotes/models/position");
+
+var portfolio = require("./portfolios/models/portfolio");
+var order = require("./portfolios/models/order");
+var position = require("./portfolios/models/position");
+
 var moment = require("moment");
 var database=null;
+
 function list_timestamp(){
     database.models.timestamp.find().all(function (err, items) {
         if (err) {console.log(err);return;}
@@ -69,20 +74,43 @@ function list_position(){
         }
     });
 }
-orm.connect("sqlite:./data/quotes.db?debug=true", function (err, db) {
-    if (err) throw err;
-
-    database=db;
-    database.models={};
-    //database.models.timestamp = timestamp(db);
-    database.models.historical = historical(db);
-    database.models.portfolio = portfolio(db);
-    database.models.order = order(db);
-    database.models.position = position(db);
-    db.sync(function(err) { 
-        if (err) throw err;
-    });
-    list_portfolio();
-    list_order();
-    list_position();
-});
+function connect_quotes(cb)
+{
+	orm.connect(setting.quotes, function (err, db) {
+	    if (err) throw err;
+	    database=db;
+	    database.models={};
+	    database.models.timestamp = timestamp(db);
+	    database.models.historical = historical(db);
+	    db.sync(function(err) { 
+	        if (err) throw err;
+		return cb();
+	    });
+	});
+}
+function connect_portfolios(cb)
+{
+	orm.connect(setting.portfolios, function (err, db) {
+	    if (err) throw err;
+	
+	    database=db;
+	    database.models={};
+	    database.models.portfolio = portfolio(db);
+	    database.models.order = order(db);
+	    database.models.position = position(db);
+	    db.sync(function(err) { 
+		    if (err) throw err;
+		    list_portfolio();
+		    list_order();
+		    list_position();
+		    return cb();
+	    });
+	});
+}
+connect_quotes(function(){
+	connect_portfolios(function(){
+		console.log("End");
+		}
+	);
+	}
+);

@@ -1,3 +1,5 @@
+var debug = require('debug')('express:portfolio');
+
 module.exports = {
 list   : list,
 create : create,
@@ -6,6 +8,7 @@ save   : save
 }
 
 function create(items_TB, params, callback) {
+    debug("portfolio, create: ",params); 
     var info ={flag:false,msg:''};
         items_TB.create(params, function (err, items) {
             if(err) {
@@ -19,7 +22,8 @@ function create(items_TB, params, callback) {
         });
 }
 function list(items_TB, params, callback) {
-    items_TB.find({Owner: params.Owner}).order('-created').
+    debug("portfolio, list: ",params);    
+    items_TB.find({Owner: params.Owner}).
         run(function (err, items) {
             var info ={flag:false,msg:''};
             if(err) {
@@ -35,6 +39,7 @@ function list(items_TB, params, callback) {
         });
 }
 function get(items_TB, params, callback) {
+    debug("portfolio, get: ",params); 
     items_TB.find({uid: params.uid,Owner: params.Owner}).
         run(function (err, items) {
             var info ={flag:false,msg:''};
@@ -50,6 +55,7 @@ function get(items_TB, params, callback) {
 }
 
 function save(items_TB, params, callback) {
+    debug("portfolio, save: ",params);
     items_TB.find({uid: params.uid,Owner: params.Owner}).
         run(function (err, items) {
             var info ={flag:false,msg:''};

@@ -16,11 +16,13 @@ var users = require('./users/index');
 var quotes = require('./quotes/index');
 var notes = require('./notes/index');
 var authenticate = require('./users/authenticate');
+var portfolios = require('./portfolios/index');
 var app = express();
 quotes.init();
 notes.init();
 users.init();
 authenticate.init();
+portfolios.init();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

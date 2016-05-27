@@ -19,7 +19,7 @@ function create(items_TB, params, callback) {
         });
 }
 function list(items_TB, params, callback) {
-    items_TB.find({Portfolio: params.Portfolio}).order('-created').
+    items_TB.find({Portfolio: params.Portfolio}).
         run(function (err, items) {
             var info ={flag:false,msg:''};
             if(err) {

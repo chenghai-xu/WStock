@@ -39,12 +39,15 @@ var hooks_m = {
     if(!this.uid){
             this.uid = uuid.v4();
     }
+    /*
     if(this.Type == 'SELL' || this.Type == 'DIVIDEN'){
         this.Amount = this.Price * this.Volume - this.Fee;
     }
     else if(this.Type == 'BUY'){
         this.Amount = this.Price * this.Volume + this.Fee;
     }
+    this.Code = this.Code.toUpperCase();
+    */
     },
     beforeSave: function(){
     }

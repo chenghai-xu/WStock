@@ -1,4 +1,5 @@
 var stockInfos = [
+	{ pyname: "cash", name: "现金", code: "CASH" },
 	{ pyname: "szzs", name: "上证指数", code: "sh000001" },
 	{ pyname: "szcz", name: "深证成指", code: "sz399001" },
 	{ pyname: "cybz", name: "创业板指", code: "sz399006" },

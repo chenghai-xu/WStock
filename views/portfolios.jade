@@ -1,0 +1,36 @@
+extends layout
+block scripts
+  script.
+    var g_portfolios = !{JSON.stringify(portfolios)};
+  script(type='text/javascript', src='/javascripts/portfolios.js')
+  script(type='text/javascript', src='/javascripts/stock.js')
+block content
+  div(id='portfolios',class='container')
+    div(class='row')
+      include portfolios_table
+    div(class='row')
+      div(class='col-sm-1')
+        button(id='btnNewPortfolio',class='btn btn-default', data-toggle='modal', data-target='#input-modal') 新组合
+      div(class='col-sm-1')
+      div(class='col-sm-1')
+        button(id='btnLoadPortfolio',class='btn btn-default') 刷新
+  div(class='modal fade container',id='input-modal', tabindex='-1',role='dialog',aria-labelledby='input-modal-label', aria-hidden='true')
+    div(class='modal-content')
+      div(class='modal-header')
+        button(type='button',class='close',data-dismiss='modal',aria-hidden='true')
+        h4(class='modal-title', id='input-modal-label') 新建组合
+      div(class='modal-body')
+        form(id='form-new-portfolio',action='/portfolios/portfolio?q=new', method='post',onsubmit='return false', class='form-horizontal',role='form')
+          div(class='form-group')
+            label(class='col-sm-1 control-label') 组合名字
+            div(class='col-sm-2')
+              input(id='portfolio-name',name='portfolio-name',class='form-control', required)
+          div(class='form-group')
+            div(class='col-sm-1')
+            div(class='col-sm-1')
+              button(type='button',class='btn btn-default',data-dismiss="modal") 关闭
+            div(class='col-sm-1')
+              button(type='submit',class='btn btn-primary') 新建
+            div(class='col-sm-2')    
+              label(id='msg',style='color: red;')
+      div(class='modal-footer')

@@ -1,0 +1,65 @@
+table(class='stocksTable table table-responsive table-condensed table-striped table-hover')
+  thead
+    tr
+      th(style='white-space: nowrap;width:60px') 序号
+      th(style='white-space: nowrap;width:60px') 时间
+      th(style='white-space: nowrap;width:60px') 代码
+      th(style='white-space: nowrap;width:60px') 名字
+      th(style='white-space: nowrap;width:60px') 方向
+      th(style='white-space: nowrap;width:60px') 单价
+      th(style='white-space: nowrap;width:60px') 数量
+      th(style='white-space: nowrap;width:60px') 费用
+      th(style='white-space: nowrap;width:60px') 总价
+      th(style='white-space: nowrap;width:60px') 标志
+      th(style='white-space: nowrap;width:60px') 操作
+  tbody(id='orders_table')
+    tr(class='templateRow',hidden)
+      td
+        div
+          span(id='o_id') 
+      td
+        div(style='cursor: pointer; position: relative;',title='点击修改')
+          span(id='o_time') 2016-05-26 14:00:00
+          input(type='datetime-local',hidden, style='width: 100%;')
+      td
+        div(style='cursor: pointer; position: relative;',title='点击修改')
+          span(id='o_code') SZ000983 
+          input(id='stockCode',type='text',hidden, style='width: 100%;')
+      td
+        div
+          span(id='o_name') 西山煤电 
+      td
+        div(id='order_dir',style='cursor: pointer; position: relative;',title='点击修改')
+          span(id='o_type') BUY 
+          select(id='dir_list',hidden,onchange='orderDirChanged(this)')      
+            option(value='BUY')       买      
+            option(value='SELL')      卖     
+            option(value='SUBSCRIBE') 申购
+            option(value='REDEEM')    赎回   
+            option(value='DELIVERY')  赠股 
+            option(value='DIVIDEN')   分红  
+
+      td
+        div(style='cursor: pointer; position: relative;',title='点击修改')
+          span(id='o_price') 7.0 
+          input(type='number',hidden, style='width: 100%;')
+      td
+        div(style='cursor: pointer; position: relative;',title='点击修改')
+          span(id='o_volume') 10000 
+          input(type='number',hidden, style='width: 100%;')
+      td
+        div(style='cursor: pointer; position: relative;',title='点击修改')
+          span(id='o_fee') 10 
+          input(type='number',hidden, style='width: 100%;')
+      td
+        div
+          span(id='o_amount') 0 
+      td
+        div(style='cursor: pointer; position: relative;',title='点击修改')
+          span(id='o_flag') 0
+          input(type='number',hidden, style='width: 100%;')
+      td
+        div(class='delete',style='cursor: pointer; position: relative;',title="删除股票")
+          br
+
+

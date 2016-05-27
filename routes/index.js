@@ -2,6 +2,7 @@ var authenticate = require('../users/authenticate');
 var quotes = require('../quotes/index');
 var notes = require('../notes/index');
 var msg2view = require('../views/msg2view');
+var portfolios = require('../portfolios/index');
 
 module.exports = function (app) {
   app.use(isAuthenticated);
@@ -20,6 +21,7 @@ module.exports = function (app) {
   app.get('/edit_note',edit_note);
   app.post('/edit_note',notes.create_note);
   app.get('/jupyter',jupyter);
+  app.use('/portfolios',portfolios.router);
 };
 
 var isAuthenticated = function(req,res,next){

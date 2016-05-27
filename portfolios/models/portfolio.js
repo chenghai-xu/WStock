@@ -7,17 +7,19 @@ var columns = {
     Owner            : { type : 'text', required : true, key : true},
     Name             : { type : 'text', required : true},
     Current_Position : { type : 'text'},
-    Current_NV_Time  : { type : 'text'}
+    Current_NV_Time  : { type : 'date', required : true, time     : true   },
+    Order_Time       : { type : 'date', required : true, time     : true   },
 };
 
 var methods_m = {
     serialize: function () {
         return {
-            uid              : uid             ,
-            Owner            : Owner           ,
-            Name             : Name            ,
-            Current_Position : Current_Position,
-            Current_NV_Time  : Current_NV_Time 
+            uid              : this.uid             ,
+            Owner            : this.Owner           ,
+            Name             : this.Name            ,
+            Current_Position : this.Current_Position,
+            Current_NV_Time  : this.Current_NV_Time ,
+            Order_Time       : this.Order_Time 
         };
     }
 };
@@ -26,6 +28,7 @@ var hooks_m = {
     beforeValidation: function () {
 	if(!this.uid){
             this.uid = uuid.v4();
+	    this.Order_Time = moment('1900-01-01T00:00:00.000Z');
 	}
     },
     beforeSave: function(){
