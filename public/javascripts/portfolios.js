@@ -29,7 +29,7 @@ function init() {
 	$("#btnLoadPortfolio").click(function() { updatePortfolios(); });
 	
 	//$("#portfolios_table").delegate(".delete", "click", function(){ deleteStockRow(); });
-	//$("#portfolios_table").delegate(".open", "click", function(){ openOrder(); });
+	$("#portfolios_table").delegate("td", "click", function(){ open_position(); });
     updatePortfolios();
     window.setTimeout(updatePortfolioLoop, 0);
 }
@@ -117,6 +117,7 @@ function createPortfolio() {
 	    $('#msg').text(data.msg);
 	    alert(data.msg);
 	    if(data.flag){
+      		window.setTimeout(function(){$('#input-modal').modal('hide');}, 1000);
 	    	var id = addPortfolios(data.portfolios[0]);
 	    	var row = newPortfolioRow();
 	    	updatePortfolioRow($(row),data.portfolios[0],id);
@@ -176,6 +177,17 @@ function portfolio_action(it){
 	//setOrders(order,id);
 }
 
+function open_position(id) {
+	var row = event.target.parentNode.parentNode;
+	if(row.tagName!="TR"){
+		return;
+	}
+	var id = parseInt($("#p_id",row).text());
+	if(isNaN(id)){
+		return;
+	}
+	openPosition(id);
+}
 function openOrder(id) {
 	var portfolios = getPortfolios();
 	var uid = portfolios[id].uid;
@@ -201,10 +213,10 @@ function openNetValue(id) {
 function updatePortfolioRow(row,portfolio,id) {
    	$("#p_id", row).text(id);
   	$("#p_name", row).text(portfolio.Name);
-   	// $("#p_total", row).text(portfolio.Total);
-   	// $("#p_cash", row).text(portfolio.Cash);
-   	// $("#p_asset", row).text(portfolio.Asset);
-   	// $("#p_gain", row).text(portfolio.Gain);
+   	$("#p_total", row).text(portfolio.Total);
+   	$("#p_cash", row).text(portfolio.Cash);
+   	$("#p_asset", row).text(portfolio.Asset);
+   	$("#p_gain", row).text(portfolio.Gain);
 
 }
 

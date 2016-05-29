@@ -7,8 +7,8 @@ var columns = {
     Owner            : { type : 'text', required : true, key : true},
     Name             : { type : 'text', required : true},
     Current_Position : { type : 'text'},
-    Current_NV_Time  : { type : 'date', required : true, time     : true   },
-    Order_Time       : { type : 'date', required : true, time     : true   },
+    Current_NV_Time  : { type : 'date', time     : true   },
+    Order_Time       : { type : 'date', time     : true   },
 };
 
 var methods_m = {
@@ -28,7 +28,7 @@ var hooks_m = {
     beforeValidation: function () {
 	if(!this.uid){
             this.uid = uuid.v4();
-	    this.Order_Time = moment('1900-01-01T00:00:00.000Z');
+	    this.Order_Time = moment('1900-01-01T00:00:00.000Z').toISOString();
 	}
     },
     beforeSave: function(){

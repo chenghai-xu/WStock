@@ -1,36 +1,36 @@
 table(class='stocksTable table table-responsive table-condensed table-striped table-hover')
   thead
     tr
-      th(style='white-space: nowrap;width:60px') 序号
-      th(style='white-space: nowrap;width:60px') 名称
-      th(style='white-space: nowrap;width:60px') 总资产
-      th(style='white-space: nowrap;width:60px') 现金
-      th(style='white-space: nowrap;width:60px') 资产
-      th(style='white-space: nowrap;width:60px') 总盈亏
-      th(style='white-space: nowrap;width:10px') 操作
+      th 序号
+      th 名称
+      th 总资产
+      th 现金
+      th 资产
+      th 总盈亏
+      th 操作
   tbody(id='portfolios_table')
     tr(class='templateRow',hidden)
       td
-        div
+        div(style='cursor: pointer; ',title='点击打开')
           span(id='p_id') id
-      td(style='white-space: nowrap;')
-        div(style='cursor: pointer; position: relative;',title='点击修改')
+      td
+        div(style='cursor: pointer; ',title='点击修改')
           span(id='p_name') name 
           input(type='text',hidden, style='width: 60px;')
       td
-        div
+        div(class='open',style='cursor: pointer; ',title='点击打开')
           span(id='p_total') 0 
       td
-        div
+        div(class='open',style='cursor: pointer; ',title='点击打开')
           span(id='p_cash') 0 
       td
-        div
+        div(class='open',style='cursor: pointer; ',title='点击打开')
           span(id='p_asset') 0
       td
-        div
+        div(class='open',style='cursor: pointer; ',title='点击打开')
           span(id='p_gain') 0
       td
-        div(style='cursor: pointer; position: relative;',title='点击修改')
+        div(style='cursor: pointer; ',title='点击操作')
           select(id='p_action',class="c-select",onchange='portfolio_action(this)')      
             option(selected) 
             option(value='Position') Position

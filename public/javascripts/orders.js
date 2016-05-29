@@ -27,6 +27,7 @@ function saveOrder()
 	}).done(function (data) {
 	    console.log("response: ",data);
 	    alert(JSON.stringify(data));
+	    edit_set.clear(); 
 	    $("#btnSaveOrder").prop("disabled",true);
 
 	}).fail(function (xhr, err, status) {
@@ -231,6 +232,7 @@ function updateOrderRow(row,order,id) {
     	$("#o_price"     , row).text(order.Price    );
     	$("#o_volume"    , row).text(order.Volume   );
     	$("#o_fee"       , row).text(order.Fee      );
+    	$("#o_amount"    , row).text(order.Amount   );
 
 }
 

@@ -9,7 +9,7 @@ function create(items_TB, params, callback) {
     var info ={flag:false,msg:''};
         items_TB.create(params, function (err, items) {
             if(err) {
-                info.flag=false;info.msg=err.msg;
+                info.flag=false;info.msg=err;
                 return callback(info); 
             }
             info.flag=true;info.msg='新建position成功。';
@@ -23,7 +23,7 @@ function list(items_TB, params, callback) {
         run(function (err, items) {
             var info ={flag:false,msg:''};
             if(err) {
-                info.flag=false;info.msg=err.msg;
+                info.flag=false;info.msg=err;
                 return callback(info); 
             }
             info.flag=true;
@@ -39,7 +39,7 @@ function get(items_TB, params, callback) {
         run(function (err, items) {
             var info ={flag:false,msg:''};
             if(err || items.length<1) {
-                info.flag=false;info.msg=err.msg;
+                info.flag=false;info.msg=err;
                 return callback(info); 
             }
             info.flag=true;
@@ -50,19 +50,17 @@ function get(items_TB, params, callback) {
 }
 
 function save(items_TB, params, callback) {
-    items_TB.find({uid: params.uid,Portfolio: params.Portfolio}).
+    items_TB.find({Portfolio: params.Portfolio, Code: params.Code}).
         run(function (err, items) {
             var info ={flag:false,msg:''};
             if(err) {
-                info.flag=false;info.msg=err.msg;
+                info.flag=false;info.msg=err;
                 return callback(info); 
             }
             if(items.length<1){
                 info.flag=false;info.msg='不存在此项目。';
                 return callback(info);    
             }
-	    items[0].Code            = params.Code            ;
-	    items[0].Name            = params.Name            ;
 	    items[0].Volume          = params.Volume          ;
 	    items[0].Current_Price   = params.Current_Price   ;
 	    items[0].Current_Amount  = params.Current_Amount  ;
@@ -73,7 +71,7 @@ function save(items_TB, params, callback) {
 	    items[0].save(function(err){
                 if(err){
                     info.flag=false;
-                    info.msg=err.msg;
+                    info.msg=err;
                 }
                 else{
                     info.flag=true;

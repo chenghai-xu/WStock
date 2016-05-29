@@ -12,7 +12,7 @@ function create(items_TB, params, callback) {
     var info ={flag:false,msg:''};
         items_TB.create(params, function (err, items) {
             if(err) {
-                info.flag=false;info.msg=err.msg;
+                info.flag=false;info.msg=err;
                 return callback(info); 
             }
             info.flag=true;info.msg='新建portfolio成功。';
@@ -27,7 +27,7 @@ function list(items_TB, params, callback) {
         run(function (err, items) {
             var info ={flag:false,msg:''};
             if(err) {
-                info.flag=false;info.msg=err.msg;
+                info.flag=false;info.msg=err;
                 return callback(info); 
             }
             info.flag=true;
@@ -44,7 +44,7 @@ function get(items_TB, params, callback) {
         run(function (err, items) {
             var info ={flag:false,msg:''};
             if(err || items.length<1) {
-                info.flag=false;info.msg=err.msg;
+                info.flag=false;info.msg=err;
                 return callback(info); 
             }
             info.flag=true;
@@ -60,7 +60,7 @@ function save(items_TB, params, callback) {
         run(function (err, items) {
             var info ={flag:false,msg:''};
             if(err) {
-                info.flag=false;info.msg=err.msg;
+                info.flag=false;info.msg=err;
                 return callback(info); 
             }
             if(items.length<1){
@@ -71,7 +71,7 @@ function save(items_TB, params, callback) {
             items[0].save(function(err){
                 if(err){
                     info.flag=false;
-                    info.msg=err.msg;
+                    info.msg=err;
                 }
                 else{
                     info.flag=true;

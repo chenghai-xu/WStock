@@ -13,7 +13,7 @@ var columns = {
     Volume           : { type : 'number', required : true},
     Fee              : { type : 'number', required : true},
     Amount           : { type : 'number'},
-    Flag             : { type : 'boolean'}
+    Flag             : { type : 'number'}
 };
 
 var methods_m = {

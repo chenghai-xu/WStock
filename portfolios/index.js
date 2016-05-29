@@ -70,7 +70,14 @@ router.post('/portfolio',function(req,res){
         Name: req.body.Name};
     debug("create portfolio: ",params);
     control.portfolio.create(database.models.portfolio,params,function(info){
-        return res.json(info);
+	    if(info.flag){
+	    	var pos_cash = new_position(cash_code,cash_name);
+	    	pos_cash.Portfolio = info.portfolios[0].uid;
+	    	database.models.position.create(pos_cash,function(err,items){
+	    	        console.log('create position cash error: ',err);
+	    	});
+	    }
+	    return res.json(info);
 
     });
   }
@@ -113,47 +120,54 @@ router.get('/order',function(req, res) {
 router.post('/order',function(req, res) {
   var view_info = msg2view.msg(req);
   view_info.flag = false;
-  view_info.msg = "No portfolio uid";
-  debug("create or change order, user: %s, req.body: ",req.user.uid,req.body);
+  view_info.msg = "invalid portfolio value";
+  debug("create order, user: ",req.user.uid, ', portfolio: ', req.body.Portfolio);
   if(req.body.Portfolio==null){
+  	debug(view_info.msg);
 	res.json(view_info);
   }
   is_owned_portfolio({uid:req.body.Portfolio,Owner:req.user.uid},function(portfolio){
-  	view_info.msg = "no or invalid portfolio uid";
+  	view_info.msg = "invalid portfolio or user";
 	if(portfolio == null){
+  		debug(view_info.msg);
 		return res.json(view_info);
 	}
-  	if(req.query.action=='new'){
-  	  var params = {
-    		Portfolio: req.body.Portfolio,
-    		Time     : req.body.Time     ,
-    		Code     : req.body.Code     ,
-    		Name     : req.body.Name     ,
-    		Type     : req.body.Type     ,
-    		Price    : req.body.Price    ,
-    		Volume   : req.body.Volume   ,
-    		Fee      : req.body.Fee      }
-  	  debug("create order: ",params);
-  	  control.order.create(database.models.order,params,function(info){
-  	      return res.json(info);
+	debug("pass portfolio validation");
 
-  	  });
+	view_info.msg = "invalid query parameters";
+  	if(req.query.action!='new'){
+  		debug(view_info.msg);
+		return res.json(view_info);
   	}
-  	else if(req.query.action=='edit' && req.body.orders.length>1){
-  	  trade_orders(req,portfolio,function(good_orders,bad_orders){
-  	  	debug("only save good orders. \n");
-		var result = {};
-		result.bad = bad_orders;
-		if(good_orders.length<1){
-			result.good = [];
-			return res.json(result);
-		}
-		save_orders(good_orders,function(infos){
-			result.good = infos;
-			return res.json(result);
-		});
-	  });
-  	}
+  	debug("to create orders, trade them first.");
+
+  	trade_orders(req,portfolio,function(pos_new,good_orders,bad_orders){
+  	      debug("only save traded orders:");
+	      create_or_save_position(pos_new,portfolio);
+	      var result = {};
+	      result.bad = bad_orders;
+	      if(good_orders.length<1){
+	      	result.good = [];
+	      	return res.json(result);
+	      }
+	      database.models.order.create(good_orders, function (err, items) {
+		var info = {};
+              	if(err) {
+              	    info.flag=false;info.msg=err.msg;
+              	    return res.json(info); 
+              	}
+              	info.flag=true;info.msg='新建order成功。';
+              	info.orders = new Array();
+              	info.orders[0] = items[0].serialize();
+              	return res.json(info);
+              });
+	      /*
+	      save_orders(good_orders,function(infos){
+	      	result.good = infos;
+	      	return res.json(result);
+	      });
+	      */
+	});
 
   });
 });
@@ -161,6 +175,10 @@ router.post('/order',function(req, res) {
 function save_orders(orders,cb){
 	  var infos = [];
 	  for(var i=0; i< orders.length;i++){
+  	  	debug("save order, time: ",orders[i].Time,
+			', code', orders[i].Code,
+			', volume', orders[i].Volume,
+			', amount', orders[i].Amount);
   	  	control.order.save(database.models.order,orders[i],function(info){
 			infos.push(info);
 			if(infos.length == orders.length){
@@ -177,6 +195,7 @@ function order_sort(a,b){
 
 function new_position(code,name) {
 	return {
+		Portfolio        : null,
 		Code             : code,
 		Name             : name,
 		Volume           : 0,
@@ -291,7 +310,13 @@ function do_trade_asset(pos_map,order){
 
 
 function complete_order(order){
-    	if(order.Type == 'SELL' || order.Type == 'DIVIDEN'){
+	order.Time   =moment(order.Time).toISOString();
+	order.Price  =parseFloat(order.Price );         
+	order.Volume =parseFloat(order.Volume);         
+	order.Fee    =parseFloat(order.Fee   );         
+	order.Amount =parseFloat(order.Amount);         
+	order.Flag   =parseInt(order.Flag  );         
+	if(order.Type == 'SELL' || order.Type == 'DIVIDEN'){
     	    order.Amount = parseFloat(order.Price * order.Volume - order.Fee);
     	}
     	else if(order.Type == 'BUY'){
@@ -318,40 +343,56 @@ function do_trade_each(pos_map,order){
 }
 
 function trade_orders(req,portfolio,cb){
-  	control.position.list(database.models.position,{Portfolio:req.query.portfolio},function(position_info){
+  	control.position.list(database.models.position,{Portfolio:portfolio.uid},function(position_info){
   	  if(!position_info.flag){
   	      	debug("list position error.");
-		return cb([],["list position error."]);
+		return cb([],[],req.body.orders);
   	  }
+	  //debug('position info: ',position_info);
 	  var sorted_orders = req.body.orders.sort(order_sort);
+	  for(var i=0; i<sorted_orders.length;i++)
+	  {
+		complete_order(sorted_orders[i]);
+	  }
 	  var order_good = [];
 	  var order_bad = [];
 	  var pos_map = new Map();
 	  var pos_set = new Set();
+	  var old_time = portfolio.Order_Time;
+	  debug('current portfolio time: ',portfolio.Order_Time);
+	  debug('current position: Code, Volume');
 	  for(var i=0;i<position_info.positions.length;i++){
 	  	pos_map.set(position_info.positions[i].Code,position_info.positions[i]);
+	        debug(position_info.positions[i].Code,', ',position_info.positions[i].Volume);
 	  }
-	  var j=0;
+	  var j=sorted_orders.length;
+	  console.log('trade order: time, code, volume,amount');
 	  for(var i=0; i<sorted_orders.length;i++)
 	  {
-		complete_order(sorted_orders[i]);
+	  	console.log(sorted_orders[i].Time,', ',sorted_orders[i].Code , ', ', 
+			sorted_orders[i].Volume, ', '+ sorted_orders[i].Amount);
 		var dt_p = moment(portfolio.Order_Time);
 		var dt_o = moment(sorted_orders[i].Time);
-		if(dt_p.isAfter(dt_o)){
-			j=i;
-			break;
+	  	var result=null;
+		if(dt_p.unix()-dt_o.unix()>=0){
+			result = new_trade_status();
+			result.flag=false;
+			result.msg='Order time is before portfolio time.';
 		}
-	  	debug('before trade order, position: ',pos_map,'\norder: ', sorted_orders[i], '\n');
-	  	var result=do_trade_each(pos_map,sorted_orders[i]);
-	  	debug('after trade order, position: ',pos_map,'\nresult: ',result,'\n');
+		else{
+	  	    result=do_trade_each(pos_map,sorted_orders[i]);
+		}
+	  	console.log('trade order result: ',result);
 	  	if(!result.flag){
 			j=i;
 	  		break;
 		}
 		portfolio.Order_Time = sorted_orders[i].Time;
-	  	debug('update portfolio time: ',portfolio,'\n');
+	  	debug('update portfolio order time: ',portfolio.Order_Time);
 		for(let code of result.Codes){
                 	pos_set.add(code);
+	  		debug('position changed, code: ',pos_map.get(code).Code,
+				', volume: ',pos_map.get(code).Volume);
 		}
 		order_good.push(sorted_orders[i]);
 	  }
@@ -363,12 +404,63 @@ function trade_orders(req,portfolio,cb){
 	  for(let code of pos_set){
 		  pos_new.push(pos_map.get(code));
 	  }
-	  debug('positions changed, portfolio, %s, positions: ',portfolio,pos_new);
-	  debug('good orders: ',order_good,'\n');
-	  debug('bad orders: ',order_bad,'\n');
-
-	  return cb(order_good,order_bad);
+	  if(old_time != portfolio.Order_Time){
+    	      database.models.portfolio.find({uid:portfolio.uid,Owner:portfolio.Owner}).run(function(error,items){
+	            
+                if(!error && items.length>0) {
+	            items[0].Order_Time=portfolio.Order_Time;
+                	items[0].save(function(err){
+	            	console.log('save portfolio order time error: ',err);
+	            });
+	        }
+    	      });    
+	  }
+	  return cb(pos_new, order_good, order_bad);
+	  /*
+	  for(var i=0;i<pos_new.length;i++){
+	      debug('save position: ',pos_new[i].Code,', volume',pos_new[i].Volume);
+	      if(pos_new[i].Portfolio==null){
+		  pos_new[i].Portfolio = portfolio.uid;
+		  database.models.position.create(pos_new[i],function(error){
+			    console.log('create position error: ',error);
+			});
+	      }
+	      else if(pos_new[i].Volume<=0 && pos_new[i].Code!= cash_code){
+		  database.models.position.find({Portfolio:portfolio.uid,Code:pos_new[i].Code}).
+			remove(function(error){
+			    console.log('delete position, error: ',error);
+			});
+	      }
+	      else{
+    	      	  control.position.save(database.models.position,pos_new[i],function(info){
+	      	      console.log('save position, error: ',info);
+    	      	  });    
+	      }
+	  }
+	  */
   	  });
+}
+function create_or_save_position(pos_new,portfolio) {
+	for(var i=0;i<pos_new.length;i++){
+	    debug('save position: ',pos_new[i].Code,', volume',pos_new[i].Volume);
+	    if(pos_new[i].Portfolio==null){
+	        pos_new[i].Portfolio = portfolio.uid;
+	        database.models.position.create(pos_new[i],function(error){
+	      	    console.log('create position error: ',error);
+	      	});
+	    }
+	    else if(pos_new[i].Volume<=0 && pos_new[i].Code!= cash_code){
+	        database.models.position.find({Portfolio:portfolio.uid,Code:pos_new[i].Code}).
+	      	remove(function(error){
+	      	    console.log('delete position, error: ',error);
+	      	});
+	    }
+	    else{
+    	    	  control.position.save(database.models.position,pos_new[i],function(info){
+	    	      console.log('save position, error: ',info);
+    	    	  });    
+	    }
+	}
 }
 
 router.get('/position',function(req, res) {
@@ -388,6 +480,10 @@ router.get('/position',function(req, res) {
   	      	debug("list position error.");
 		return res.redirect('/portfolios');
   	  }
+	  debug('list position: code, volume');
+	  for(var i=0; i< position_info.positions.length;i++){
+	  	debug(position_info.positions[i].Code, position_info.positions[i].Volume);
+	  }
   	  view_info.positions = position_info.positions;
   	  res.render('positions',view_info);
   	});

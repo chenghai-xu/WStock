@@ -20,16 +20,16 @@ var methods_m = {
     serialize: function () {
         return {
             //uid              : uid           ,
-            Portfolio        : Portfolio     ,
-            Code             : Code          ,
-            Name             : Name          ,
-            Volume           : Volume        ,
-            Current_Price    : Current_Price ,
-            Current_Amount   : Current_Amount,
-            Cost_Price       : Cost_Price    ,
-            Cost_Amount      : Cost_Amount   ,
-            Gain             : Gain          ,
-            Gain_Rate        : Gain_Rate     
+            Portfolio        : this.Portfolio     ,
+            Code             : this.Code          ,
+            Name             : this.Name          ,
+            Volume           : this.Volume        ,
+            Current_Price    : this.Current_Price ,
+            Current_Amount   : this.Current_Amount,
+            Cost_Price       : this.Cost_Price    ,
+            Cost_Amount      : this.Cost_Amount   ,
+            Gain             : this.Gain          ,
+            Gain_Rate        : this.Gain_Rate     
         };
     }
 };
