@@ -6,6 +6,9 @@ var sina = require('./sina');
 var moment = require('moment');
 var database = {models:{}};
 
+var EventEmitter = require('events').EventEmitter; 
+var event = new EventEmitter();
+
 function get_sina(req, res, next) {
   if(req.query.list == undefined){
     res.end("");
@@ -53,14 +56,27 @@ function connect(){
         if (err) {console.log(err);return;}
         console.log("Init models of Historical. count: %s",count);
       });
+      event.emit('ready',database);
       update();
     });
   });
 }
 
+function bind(app){
+	app.use(function(req, res, next) {
+		req.models.historical=database.models.historical;
+		req.models.current_quote=database.models.current_quote;
+		req.models.index_code=database.models.index_code;
+		next();
+	});
+}
+
 module.exports = {
   models: database.models,
   init: connect,
-  quote: get_sina
+  quote: get_sina,
+  control:control,
+  bind : bind,
+  event:event
 };
 

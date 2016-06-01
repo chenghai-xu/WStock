@@ -307,13 +307,12 @@ Driver.prototype.propertyToValue = function (value, property) {
 				value = JSON.stringify(value);
 			}
 			break;
-        case "date":
-            if (value instanceof Date) {
-                value = value.toISOString();
-            }
-            /*
-			if (this.config.query && this.config.query.strdates) {
-				if (value instanceof Date) {
+		case "date":
+			if (value instanceof Date) {
+				if (property.time === true) {
+					value = value.toISOString();
+				}
+				else{
 					var year = value.getUTCFullYear();
 					var month = value.getUTCMonth() + 1;
 					if (month < 10) {
@@ -323,36 +322,10 @@ Driver.prototype.propertyToValue = function (value, property) {
 					if (date < 10) {
 						date = '0' + date;
 					}
-					var strdate = year + '-' + month + '-' + date;
-					if (property.time === false) {
-						value = strdate;
-						break;
-					}
+					value = year + '-' + month + '-' + date;
 
-					var hours = value.getUTCHours();
-					if (hours < 10) {
-						hours = '0' + hours;
-					}
-					var minutes = value.getUTCMinutes();
-					if (minutes < 10) {
-						minutes = '0' + minutes;
-					}
-					var seconds = value.getUTCSeconds();
-					if (seconds < 10) {
-						seconds = '0' + seconds;
-					}
-					var millis = value.getUTCMilliseconds();
-					if (millis < 10) {
-						millis = '0' + millis;
-					}
-					if (millis < 100) {
-						millis = '0' + millis;
-					}
-					strdate += ' ' + hours + ':' + minutes + ':' + seconds + '.' + millis + '000';
-					value = strdate;
 				}
 			}
-            */
 			break;
 		default:
 			customType = this.customTypes[property.type];

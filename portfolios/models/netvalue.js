@@ -4,8 +4,10 @@ var orm = require('orm');
 var uuid = require('node-uuid');
 var columns = {
     Portfolio        : { type : 'text', required : true, key : true},
-    Time             : { type : 'date', required : true, time     : true, key : true},
-    Value            : { type : 'text'}
+    Time             : { type : 'text', required : true, key : true},
+    Share            : { type : 'number'},
+    Value            : { type : 'number'},
+    Total            : { type : 'number'}
 };
 
 var methods_m = {
@@ -13,7 +15,9 @@ var methods_m = {
         return {
             Portfolio        : this.Portfolio ,
             Time             : this.Time      ,
-            Value            : this.Value      
+            Share            : this.Share     ,
+            Value            : this.Value     ,
+            Total            : this.Total      
         };
     }
 };

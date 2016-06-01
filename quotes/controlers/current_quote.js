@@ -1,11 +1,15 @@
 var moment = require('moment');
 var sina = require('../sina');
 var database = null;
+var EventEmitter = require('events').EventEmitter; 
+var event = new EventEmitter();
+
 
 module.exports = {
 update_control : update_control,
 update : update,
-set_db : set_db
+set_db : set_db,
+event  : event
 };
 function set_db(db){
     database=db;
@@ -73,6 +77,7 @@ function update()
             if(count==quotes.length){
               database.driver.execQuery('COMMIT TRANSACTION;', function (err, data) {
                 console.log('Update Quote: COMMIT TRANSACTION;');
+		emit_update(quotes);
               });
             }
           });
@@ -80,5 +85,9 @@ function update()
       });
     });
   });
+}
+function emit_update(quotes){
+	console.log('event: current_quote, update');
+	event.emit('update', quotes);
 }
 

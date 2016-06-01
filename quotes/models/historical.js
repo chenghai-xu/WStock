@@ -3,7 +3,7 @@ var moment = require('moment');
 var orm = require('orm');
 var historical_TB = {
     Code             : { type : 'text', key      : true, required : true},
-    Date             : { type : 'date', key      : true, required : true},
+    Date             : { type : 'text', key      : true, required : true},
     Open             : { type : 'number', required : false},
     High             : { type : 'number', required : false},
     Low              : { type : 'number', required : false},

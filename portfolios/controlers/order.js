@@ -1,8 +1,17 @@
+var debug = require('debug')('express:portfolio');
+var EventEmitter = require('events').EventEmitter; 
+var moment = require('moment');
+var event = new EventEmitter();
+var cash_code = 'CASH';
+var cash_name = '现金';
+
 module.exports = {
 list   : list,
 create : create,
 get    : get,
-save   : save
+save   : save,
+complete_order,complete_order,
+event: event
 }
 
 function create(items_TB, params, callback) {
@@ -88,3 +97,22 @@ function save(items_TB, params, callback) {
 
 
 
+function complete_order(order){
+	order.Time   =moment(order.Time).toISOString();
+	order.Price  =parseFloat(order.Price );         
+	order.Volume =parseFloat(order.Volume);         
+	order.Fee    =parseFloat(order.Fee   );         
+	order.Amount =parseFloat(order.Amount);         
+	order.Flag   =parseInt(order.Flag  );         
+	if(order.Type == 'SELL' || order.Type == 'DIVIDEN'){
+    	    order.Amount = parseFloat(order.Price * order.Volume - order.Fee);
+    	}
+    	else if(order.Type == 'BUY'){
+    	    order.Amount = parseFloat(order.Price * order.Volume + order.Fee);
+    	}
+    	order.Code = order.Code.toUpperCase();
+	if(order.Code == cash_code){
+		order.Amount = order.Volume;
+		order.Name = cash_name;
+	}
+}

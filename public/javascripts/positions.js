@@ -10,7 +10,7 @@ function init_order_modal(){
     });
 }
 function init_position(){
-    updatePositions();
+    display_position();
     update_position_map();
     update_sell_options();
 }
@@ -39,13 +39,16 @@ function update_position_map(){
 	}
 }
 
-function updatePositions() {
+function display_position() {
     var rows = $("#positions_table .tableRow");
     var Positions = getPositions();
     for(var i=0; i<Positions.length - rows.length;i++){
     	newpositionRow();
     }
     rows = $("#positions_table .tableRow");
+    for(var i=0; i<rows.length - Positions.length ;i++){
+    	rows[i].remove();
+    }
     setTimeout(function(){
         for(var i=0; i< Positions.length;i ++){
             updatepositionRow($(rows[i]),Positions[i],i);
@@ -82,7 +85,7 @@ function getPositions(){
 }
 function addPositions(position){
 	g_positions.push(position);
-	return g_Positions.length - 1;
+	return g_positions.length - 1;
 }
 function setPositions(position,id){
 	g_positions[id]=position;
@@ -125,7 +128,29 @@ function new_order(){
 	}).done(function (data) {
             alert(JSON.stringify(data));
 	    if(data.flag){
-                window.setTimeout(function(){$('#new-order-modal').modal('hide');}, 1000);
+                window.setTimeout(function(){
+			$('#new-order-modal').modal('hide');
+			update_position();
+		}, 0);
+            }
+
+	}).fail(function (xhr, err, status) {
+	    alert(err);
+	});
+}
+function isArray(obj) {   
+	return Object.prototype.toString.call(obj) === '[object Array]';    
+}   
+function update_position(){
+	$.ajax({
+	    url    : '/portfolios/position?get=true&portfolio='+g_portfolio,
+	    type   : 'get'
+	}).done(function (data) {
+	    if(isArray(data)){
+                window.setTimeout(function(){
+			g_positions = data;
+			init_position();
+		}, 0);
             }
 
 	}).fail(function (xhr, err, status) {
@@ -135,8 +160,8 @@ function new_order(){
 
 function order_direction_changed(it){
 	$("#form-new-order #order-type").val(it);
-
 }
+
 function number_pad(s){
 	var d=s.toString();
 	if(d<10){
@@ -145,6 +170,7 @@ function number_pad(s){
 	return d;
 }
 function init_datetime(input){
+	if(input.val()!='') return;
 	var dt = new Date();
 	var M = dt.getMonth()+1;
 	var d = dt.getDate();

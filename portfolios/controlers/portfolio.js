@@ -1,10 +1,20 @@
 var debug = require('debug')('express:portfolio');
+var EventEmitter = require('events').EventEmitter; 
+var event = new EventEmitter();
+var db = null;
+
 
 module.exports = {
 list   : list,
 create : create,
 get    : get,
-save   : save
+save   : save,
+init   : init,
+event  : event
+}
+
+function init(d){
+	db = d;
 }
 
 function create(items_TB, params, callback) {
@@ -18,12 +28,13 @@ function create(items_TB, params, callback) {
             info.flag=true;info.msg='新建portfolio成功。';
             info.portfolios = new Array();
             info.portfolios[0] = items.serialize();
+	    event.emit('insert', info.portfolios[0]);
             return callback(info);
         });
 }
 function list(items_TB, params, callback) {
     debug("portfolio, list: ",params);    
-    items_TB.find({Owner: params.Owner}).
+    items_TB.find({User: params.User}).
         run(function (err, items) {
             var info ={flag:false,msg:''};
             if(err) {
@@ -40,7 +51,7 @@ function list(items_TB, params, callback) {
 }
 function get(items_TB, params, callback) {
     debug("portfolio, get: ",params); 
-    items_TB.find({uid: params.uid,Owner: params.Owner}).
+    items_TB.find({uid: params.uid,User: params.User}).
         run(function (err, items) {
             var info ={flag:false,msg:''};
             if(err || items.length<1) {
@@ -56,7 +67,7 @@ function get(items_TB, params, callback) {
 
 function save(items_TB, params, callback) {
     debug("portfolio, save: ",params);
-    items_TB.find({uid: params.uid,Owner: params.Owner}).
+    items_TB.find({uid: params.uid,User: params.User}).
         run(function (err, items) {
             var info ={flag:false,msg:''};
             if(err) {

@@ -63,9 +63,10 @@ function historical_xueqiu(stock,start,end,callback){
   http.get(url, function(res,msg){
     res.on('data',function(data){
       cont=Buffer.concat([cont,data]);
+      console.log(cont);
     });
     res.on('end',function(){
-    //console.log('Download historical success, url: %s',url);
+      //console.log('Download historical success, url: %s',url);
       callback(decode_historical_xueqiu(stock,start,end,encoding.convert(cont,'utf8','gbk').toString()));
     });
     res.on('error',function(){
