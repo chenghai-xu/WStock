@@ -57,7 +57,7 @@ function connect(){
         console.log("Init models of Historical. count: %s",count);
       });
       event.emit('ready',database);
-      update();
+      //update();
     });
   });
 }
@@ -77,6 +77,7 @@ module.exports = {
   quote: get_sina,
   control:control,
   bind : bind,
+  update: update,
   event:event
 };
 

@@ -69,7 +69,7 @@ function calc_current_each(quotes_db,pos,cb){
 	quotes_db.models.current_quote.find({Code:code}).run(function(err,quotes){
 		if(err) throw err;
 		if(quotes.length<1) {
-			console.log('calculate postion asset, code: %s, date: %s, use cost amount',code);
+			console.log('calculate current postion asset, code: %s, use cost amount',code);
 			pos.Current_Price = pos.Cost_Price;
 			pos.Current_Amount = parseFloat(pos.Current_Price * pos.Volume);
 			return cb();
@@ -339,8 +339,13 @@ function create_or_save_position(req,portfolio,pos_map) {
 		    req.models.position.create(pos,function(err,items){
 			    if(err)  throw err;
 		    });
-		    req.models.current_quote.create({Code:pos.Code,Name:pos.Name},function(err,items){
+		    if(pos.Code === cash_code) return;
+		    req.models.current_quote.count({Code:pos.Code},function(err,count){
 			    if(err) throw err;
+			    if(count>0) return;
+			    req.models.current_quote.create({Code:pos.Code,Name:pos.Name},function(err,items){
+				    if(err) throw err;
+			    });
 		    });
 	    }
 	}

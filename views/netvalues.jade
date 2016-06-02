@@ -1,0 +1,18 @@
+extends layout
+block scripts
+  script.
+    var g_netvalues = !{JSON.stringify(netvalues)};
+    var g_portfolio = !{JSON.stringify(portfolio)};
+  script(type='text/javascript', src='/javascripts/netvalues.js')
+  //script(type='text/javascript', src='/raphael.min.js')
+block content
+  div(id='netvalues',class='container')
+    div(id='netvalue_chart',class='row')
+      include netvalues_table
+    div(id='netvalue_figure',class='row',hidden)
+    div(class='row')
+      div(class='col-sm-1')
+        button(class='btn btn-default',onclick="location.href='/portfolios'") 返回 
+      div(class='col-sm-1')
+      div(class='col-sm-1')
+        button(class='btn btn-default',onclick='figure_tabel_toggle()') 图形

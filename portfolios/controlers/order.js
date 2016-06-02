@@ -11,8 +11,13 @@ create : create,
 get    : get,
 save   : save,
 complete_order,complete_order,
+sort, sort,
 event: event
 }
+function sort(a,b){
+	return moment(a.Time).diff(b.Time);
+}
+
 
 function create(items_TB, params, callback) {
     var info ={flag:false,msg:''};

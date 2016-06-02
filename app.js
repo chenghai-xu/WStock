@@ -23,6 +23,9 @@ notes.init();
 users.init();
 authenticate.init();
 portfolios.init(quotes);
+quotes.event.on('ready', function(){
+	quotes.update();
+});
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

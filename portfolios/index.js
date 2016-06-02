@@ -14,8 +14,10 @@ var event = new EventEmitter();
 var database = {models:{}};
 var cash_code = 'CASH';
 var cash_name = '现金';
+var trade_day = new Set();
 
 var quotes_db = null;
+var db_ready = false;
 
 function connect(){
   orm.connect(settings.portfolios, function (err, db) {
@@ -43,6 +45,7 @@ function connect(){
         if (err) {console.log(err);return;}
         console.log("Init models of netvalue. count: %s",count);
       });
+    db_ready = true;
     });
   });
 }
@@ -119,6 +122,29 @@ router.get('/order',function(req, res) {
   });
 });
 
+router.get('/netvalue',function(req, res) {
+  if(req.query.portfolio==null){
+	res.redirect('/');
+  }
+  debug("list netvalue, user: %s, portfolio: %",req.user.uid,req.query.portfolio);
+  database.models.portfolio.find({uid:req.query.portfolio,User:req.user.uid},function(err,items){
+	if(err) throw err;
+	if(items.length<1){
+		return res.redirect('/portfolios');
+	}
+        var view_info = msg2view.msg(req);
+	view_info.netvalues=[];
+	view_info.portfolio=req.query.portfolio;
+	database.models.netvalue.find({Portfolio:req.query.portfolio}).order('Date').run(function(err, items){
+		if(err) throw err;
+		for(var i =0; i< items.length; i++){
+			view_info.netvalues.push(items[i].serialize());
+		}
+		res.render('netvalues',view_info);
+	});
+  });
+});
+
 router.post('/order',function(req, res) {
   var view_info = msg2view.msg(req);
   view_info.flag = false;
@@ -144,13 +170,7 @@ router.post('/order',function(req, res) {
   	}
   	debug("to create orders, trade them first.");
 
-	trade_orders(req,portfolio,function(pos_new,order_good,bad_orders){
-		debug("only save traded orders:");
-		var result = {};
-		result.flag = true;
-		if(result.length>0){
-			result.flag = false;
-		}
+	trade_orders(req,portfolio,function(bad_orders,result){
 		result.bad = bad_orders;
 		return res.json(result);
 	});
@@ -158,14 +178,10 @@ router.post('/order',function(req, res) {
   });
 });
 
-function order_sort(a,b){
-	return moment(a.Time).unix() - moment(b.Time).unix();
-}
-
 function trade_orders(req,portfolio,cb){
   	req.models.position.find({Portfolio:portfolio.uid},function(err,positions){
   	  if(err) throw err;
-	  var sorted_orders = req.body.orders.sort(order_sort);
+	  var sorted_orders = req.body.orders.sort(control.order.sort);
 	  for(var i=0; i<sorted_orders.length;i++)
 	  {
 		control.order.complete_order(sorted_orders[i]);
@@ -181,17 +197,21 @@ function trade_orders(req,portfolio,cb){
 	  }
 	  var j=sorted_orders.length;
 	  console.log('trade order: time, code, volume,amount');
+	  var result=null;
 	  for(var i=0; i<sorted_orders.length;i++)
 	  {
 	  	console.log(sorted_orders[i].Time,', ',sorted_orders[i].Code , ', ', 
 			sorted_orders[i].Volume, ', '+ sorted_orders[i].Amount);
 		var dt_p = moment(portfolio.Order_Time);
 		var dt_o = moment(sorted_orders[i].Time);
-	  	var result=null;
+		result = control.position.trade_status();
 		if(dt_p.unix()-dt_o.unix()>=0){
-			result = control.position.trade_status();
 			result.flag=false;
 			result.msg='Order time is before portfolio time.';
+		}
+		else if(!trade_day.has(dt_o.format('YYYY-MM-DD'))){
+			result.flag=false;
+			result.msg='Order time is not a trade day.';
 		}
 		else{
 	  	    result=control.position.do_trade_each(pos_map,sorted_orders[i]);
@@ -226,7 +246,7 @@ function trade_orders(req,portfolio,cb){
 			  if(err) throw err;
 		  });
 	  }
-	  return cb(order_bad);
+	  return cb(order_bad,result);
   	  });
 }
 
@@ -262,39 +282,61 @@ router.get('/position',function(req, res) {
 
 function on_insert_historical(historicals){
 	console.log('receive event: historical, insert. ');
-	if(historicals.length<1) return;
-	var dates = new Set();
-	var min = moment(moment(historicals[0].Date).format('YYYY-MM-DD'));
-	for(var i=0; i< historicals.length; i++){
-		var dt = moment(historicals[i].Date).format('YYYY-MM-DD');
-		dates.add(dt);
-		if(moment(dt).unix()<moment(min).unix()) min = dt;
+	for(var i=0; i<historical.length; i++){
+		trade_day.add(moment(historicals[0].Date).format('YYYY-MM-DD'));
 	}
+	if(historicals.length<1) return;
 	database.models.portfolio.find().each(function(portfolio){
-		database.models.order.count({Portfolio:portfolio.uid}).run(function(o_err,count){
+		database.models.order.count({Portfolio:portfolio.uid},function(o_err,count){
 			if(o_err) throw o_err;
-			if(count>0) control.netvalue.insert_netvalue(database.models.netvalue,dates,portfolio.uid,function(flag){
-				update_netvalue(portfolio.uid,dt);
+			if(count<1) return;
+
+			var min = moment(moment(historicals[0].Date).format('YYYY-MM-DD'));
+			for(var i=0; i< historicals.length; i++){
+				var dt = moment(historicals[i].Date).format('YYYY-MM-DD');
+				if(moment(dt).diff(min)<0) min = dt;
+			}
+
+			var order_time = moment(portfolio.Order_Time).format('YYYY-MM-DD');
+			if(moment(order_time).diff(min)>0) min = order_time;
+			var dates = new Set();
+			for(var i=historicals.length - 1; i>=0 ;i--){
+				if(moment(historicals[i].Date).diff(min)<0) break;
+				dates.add(dt);
+			}
+			if(dates.size<1) return;
+			control.netvalue.insert_netvalue(database.models.netvalue,dates,portfolio.uid,function(flag){
+				update_netvalue(portfolio,dt);
 			});
 		});
 	});
 }
 function update_netvalue(portfolio,dt){
-	database.models.netvalue.find({Portfolio:portfolio, Time: orm.lt(dt)}).order('-Time').limit(1).run(function(err,last){
+	database.models.netvalue.find({Portfolio:portfolio.uid, Time: orm.lt(dt)}).order('-Time').limit(1).run(function(err,last){
 		if(err) throw err;
 		if(last.length<1) return;
 		var beg = last[0].Time;
-		database.models.netvalue.find({Portfolio:portfolio, Time: orm.gte(beg)}).order('Time').run(function(err,netvalues){
+		var p_time = moment(portfolio.Order_Time).format('YYYY-MM-DD');
+		//Only caculate net values begin from date of latest order time 
+		if(moment(beg).diff(p_time)<0) beg = p_time;
+		database.models.netvalue.find({Portfolio:portfolio.uid, Time: orm.gte(beg)}).order('Time').run(function(err,netvalues){
 			if(err) throw err;
 			if(netvalues.length<1) return;
-			database.models.position.find({Portfolio:portfolio},function(err,positions){
+			database.models.position.find({Portfolio:portfolio.uid},function(err,positions){
 				if(err) throw err;
 				if(positions.length<1) return;
 				var pos_map = new Set();
 				for(var i=0; i< positions.length; i++){
 					pos_map.add(positions[i].Code,positions[i]);
 				}
-				netvalues.recalc_value(quotes_db,pos_map,control.position,netvalues);
+				var beg_idx = 0;
+				control.netvalue.recalc_value(quotes_db,pos_map,control.position,netvalues,beg_idx,function(){
+					for(var i=0; i< netvalues.length;i++){
+						netvalues[i].save(function(err){
+							if(err) throw err;
+						});
+					}
+				});
 
 			});
 		});
@@ -304,6 +346,7 @@ function update_netvalue(portfolio,dt){
 function on_update_current_quote(current_quotes){
 	if(current_quotes.length<1) return;
 	var dt = moment(current_quotes[0].Time).format('YYYY-MM-DD');
+	trade_day.add(dt);
 	database.models.portfolio.find().each(function(portfolio){
 		database.models.order.count({Portfolio:portfolio.uid},function(o_err,count){
 			if(o_err) throw o_err;
@@ -328,9 +371,28 @@ function update_position()
 	});
 }
 
+function check_ready(){
+
+	if(db_ready && quotes_db){
+
+		event.emit('ready',database);
+	}
+	else{
+		setTimeout(check_ready,5*1000);
+	}
+}
+
 function on_quotes_ready(db){
-	console.log('receive event: quotes, ready. ');
 	quotes_db = db;
+	quotes_db.models.historical.find({Code:'SH000001'}).only('Date').run(function(err, dates){
+		if(err) throw err;
+		for(var i=0; i<dates.length;i++){
+			trade_day.add(dates[i].Date);
+		}
+		console.log('portfolios, update trade day.');
+		//debug(trade_day);
+		check_ready();
+	});
 }
 
 
@@ -351,10 +413,114 @@ function bind(app){
 	});
 }
 
+function data_mantain(){
+	console.log('mantain portfolio begin');
+	quotes_db.models.historical.find({Code: 'SH000001'},['Date', 'A']).only('Date').run(function(err, historicals){
+		var dates = [];
+		for(var i=0; i< historicals.length;i++){
+			dates.push(historicals[i].Date);
+		}
+		database.models.portfolio.find().each(function(portfolio){
+			database.models.order.find({Portfolio: portfolio.uid}).order('Time').run(function(err,orders){
+				if(err) throw err;
+				if(orders.length<1) return;
+				database.models.position.find({Portfolio: portfolio.uid},function(err,positions){
+					if(err) throw err;
+					database.models.netvalue.find({Portfolio: portfolio.uid}).order('Date').run(function(err,netvalues){
+						if(err) throw err;
+						data_mantain_each(orders,positions,netvalues,dates);
+					});
+
+				});
+			});
+		});
+	});
+}
+
+function data_mantain_each(orders,current_positions,current_netvalues,dates){
+	console.log('mantain portfolio: %s',orders[0].Portfolio);
+	console.log('current positions: code, volume');
+	for(var i=0; i< current_positions.length; i++){
+		var pos = current_positions[i];
+		console.log('%s, %s',pos.Code, pos.Volume);
+	}
+	console.log('lastest value of current netvalue: Share, Value, Total',
+			current_netvalues[current_netvalues.length-1].Share,
+			current_netvalues[current_netvalues.length-1].Value,
+			current_netvalues[current_netvalues.length-1].Total);
+
+	var first_order_day = moment(orders[0].Time).format('YYYY-MM-DD');
+	var begin_day = null;
+	var new_netvalues = [];
+	console.log('first order date', first_order_day);
+	for(var i=dates.length-1; i>=0; i--){
+		if(moment(dates[i]).diff(first_order_day)<0){
+			new_netvalues.push(control.netvalue.new_netvalue(null,dates[i]));
+			begin_day = dates[i];
+			break;
+		}
+		new_netvalues.push(control.netvalue.new_netvalue(null,dates[i]));
+	}
+	if(new_netvalues.length<1) {
+		console.log('mantain, portfolio: %s, can not find the day before the first order, stop.',orders[0].Portfolio);
+		return;
+	}
+	new_netvalues.sort(control.netvalue.sort);
+	console.log('netvalue begin date: ', new_netvalues[0].Date);
+	console.log('netvalue end date: ', new_netvalues[new_netvalues.length-1].Date);
+	var new_netvalues_idx = new Map();
+	for(var i=0; i< new_netvalues.length; i++){
+		new_netvalues_idx.set(new_netvalues[i].Date, i);
+	}
+
+	var pos_map = new Map();
+	pos_map.set(cash_code, control.position.new_position(cash_code,cash_name));
+
+	var result = null;
+	for(var i=0; i< orders.length; i++){
+		var order_day = moment(orders[i].Time).format('YYYY-MM-DD');
+		if(!trade_day.has(order_day)){
+			console.log('mantain, portfolio: %s, can not trade order: %s, time: %s \n',
+					orders[i].Portfolio, orders[i].uid, orders[i].Time, 'result:  order time is not a trade day: ',order_day);
+			break;
+		}
+		result=control.position.do_trade_each(pos_map,orders[i]);
+		if(!result.flag){
+			console.log('mantain, portfolio: %s, can not trade order: %s, time: %s \n',
+					orders[i].Portfolio, orders[i].uid, orders[i].Time, 'result: ', result);
+			orders[i].Flag = 0;
+			break;
+		}
+		orders[i].Flag = 2;
+		var idx = new_netvalues_idx.get(order_day);
+		if(idx == 0 || !idx){
+			console.log('mantain, portfolio: %s, can not trade order: %s, time: %s \n',
+					orders[i].Portfolio, orders[i].uid, orders[i].Time, 'result:  cant not find prope netvalue day.');
+			break;
+		}
+		control.netvalue.share_change(orders[i], new_netvalues,idx);
+		control.netvalue.recalc_value(quotes_db,pos_map,control.position,new_netvalues,idx,function(ret_netvalues){
+
+			console.log('mantain resutl, portfolio: %s',orders[0].Portfolio);
+			console.log('positions: code, volume');
+			for(let pos of pos_map.values()){
+				console.log('%s, %s',pos.Code, pos.Volume);
+			}
+			console.log('last netvalue: Share, Value, Total',
+				new_netvalues[new_netvalues.length-1].Share,
+				new_netvalues[new_netvalues.length-1].Value,
+				new_netvalues[new_netvalues.length-1].Total);
+		});
+
+	}
+}
+
 module.exports = {
   models: database.models,
   init: init,
   bind: bind,
-  router:router
+  mantain: data_mantain,
+  router:router,
+  event: event
 };
 

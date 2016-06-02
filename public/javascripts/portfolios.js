@@ -170,7 +170,7 @@ function portfolio_action(it){
 		openPosition(id);
 	}
 	else if(action=="NetValue"){
-		openPosition(id);
+		openNetValue(id);
 	}
 
 	//var portfolio = getPortfolios() [id];
