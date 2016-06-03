@@ -170,15 +170,17 @@ router.post('/order',function(req, res) {
   	}
   	debug("to create orders, trade them first.");
 
-	trade_orders(req,portfolio,function(bad_orders,result){
-		result.bad = bad_orders;
-		return res.json(result);
+	database.models.order.count({Portfolio:portfolio.uid},function(err,count){
+		if(err) throw err;
+		trade_orders(req,portfolio,count,function(bad_orders,result){
+			result.bad = bad_orders;
+			return res.json(result);
+		});
 	});
-
   });
 });
 
-function trade_orders(req,portfolio,cb){
+function trade_orders(req,portfolio,order_count,cb){
   	req.models.position.find({Portfolio:portfolio.uid},function(err,positions){
   	  if(err) throw err;
 	  var sorted_orders = req.body.orders.sort(control.order.sort);
@@ -196,7 +198,7 @@ function trade_orders(req,portfolio,cb){
 	        debug(positions[i].Code,', ',positions[i].Volume);
 	  }
 	  var j=sorted_orders.length;
-	  console.log('trade order: time, code, volume,amount');
+	  console.log('trade order: time, code, volume, amount');
 	  var result=null;
 	  for(var i=0; i<sorted_orders.length;i++)
 	  {
@@ -205,7 +207,7 @@ function trade_orders(req,portfolio,cb){
 		var dt_p = moment(portfolio.Order_Time);
 		var dt_o = moment(sorted_orders[i].Time);
 		result = control.position.trade_status();
-		if(dt_p.unix()-dt_o.unix()>=0){
+		if(dt_p.unix()-dt_o.unix()>=0 && order_count>0){
 			result.flag=false;
 			result.msg='Order time is before portfolio time.';
 		}
@@ -282,7 +284,7 @@ router.get('/position',function(req, res) {
 
 function on_insert_historical(historicals){
 	console.log('receive event: historical, insert. ');
-	for(var i=0; i<historical.length; i++){
+	for(var i=0; i<historicals.length; i++){
 		trade_day.add(moment(historicals[0].Date).format('YYYY-MM-DD'));
 	}
 	if(historicals.length<1) return;
@@ -468,16 +470,34 @@ function data_mantain_each(orders,current_positions,current_netvalues,dates){
 	new_netvalues.sort(control.netvalue.sort);
 	console.log('netvalue begin date: ', new_netvalues[0].Date);
 	console.log('netvalue end date: ', new_netvalues[new_netvalues.length-1].Date);
+
+	var pos_map = new Map();
+	pos_map.set(cash_code, control.position.new_position(cash_code,cash_name));
+
+	do_data_mantain_each(orders,pos_map,new_netvalues,dates,function(){
+		console.log('mantain resutl, portfolio: %s',orders[0].Portfolio);
+		console.log('positions: code, volume');
+		for(let pos of pos_map.values()){
+			console.log('%s, %s',pos.Code, pos.Volume);
+		}
+		console.log('last netvalue: Share, Value, Total',
+			new_netvalues[new_netvalues.length-1].Share,
+			new_netvalues[new_netvalues.length-1].Value,
+			new_netvalues[new_netvalues.length-1].Total);
+	});
+
+}
+
+function do_data_mantain_each(orders,pos_map,new_netvalues,dates,cb){
 	var new_netvalues_idx = new Map();
 	for(var i=0; i< new_netvalues.length; i++){
 		new_netvalues_idx.set(new_netvalues[i].Date, i);
 	}
 
-	var pos_map = new Map();
-	pos_map.set(cash_code, control.position.new_position(cash_code,cash_name));
-
 	var result = null;
+	var count = 1;
 	for(var i=0; i< orders.length; i++){
+		console.log('mantain, portfolio: %s, order: %s in %s ',orders[i].Portfolio, i, orders.length);
 		var order_day = moment(orders[i].Time).format('YYYY-MM-DD');
 		if(!trade_day.has(order_day)){
 			console.log('mantain, portfolio: %s, can not trade order: %s, time: %s \n',
@@ -501,15 +521,9 @@ function data_mantain_each(orders,current_positions,current_netvalues,dates){
 		control.netvalue.share_change(orders[i], new_netvalues,idx);
 		control.netvalue.recalc_value(quotes_db,pos_map,control.position,new_netvalues,idx,function(ret_netvalues){
 
-			console.log('mantain resutl, portfolio: %s',orders[0].Portfolio);
-			console.log('positions: code, volume');
-			for(let pos of pos_map.values()){
-				console.log('%s, %s',pos.Code, pos.Volume);
-			}
-			console.log('last netvalue: Share, Value, Total',
-				new_netvalues[new_netvalues.length-1].Share,
-				new_netvalues[new_netvalues.length-1].Value,
-				new_netvalues[new_netvalues.length-1].Total);
+			count++;
+			if(count != orders.length) return;
+			cb();
 		});
 
 	}

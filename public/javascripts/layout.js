@@ -2,7 +2,6 @@ $(document).ready(function() {
    init(); 
 });
 
-var backgroundPage = null; 
 var stopUpdateInfo = false;
 var showCode = "sh000001";
 
@@ -38,48 +37,10 @@ function saveOptions()
 	if (rows.length < Settings.getValue("popupStockPosition"))
 		Settings.setValue("popupStockPosition", 0);
 	
-	//backgroundPage.reloadSock = true;
-	//backgroundPage.refreshStocks();
 	
-	//initializeStockRow();
-	
-	showMessage("保存成功");
 }
 
-function saveStockNote() {
-	var stockCode = $("textarea#txtStockNote").attr("tag");
-	
-	Settings.setValue("note_" + stockCode, $("textarea#txtStockNote").val());
-	
-	showMessage("保存备注成功");
-}
 
-var hideMessageTime = -1;
-
-function showMessage(msg) {
-	
-	$("#message").html(msg).css({ 'top': '-34' }).animate({ 'top': '0' }, 100);
-	
-	if (hideMessageTime > 0)
-		hideMessageTime = 20;
-	else
-	{
-		hideMessageTime = 20;
-		window.setTimeout(eraseMessage, 100);
-	}
-}
-
-function eraseMessage() {
-	if (hideMessageTime > 0)
-	{
-		hideMessageTime--;
-		window.setTimeout(eraseMessage, 100);
-	}
-	else
-	{
-		$("#message").animate({ 'top': '-34' }, 200);
-	}
-}
 
 function selectFigureType(p_t){
 		setFigureSrc();
@@ -94,79 +55,10 @@ function setFigureSrc(){
 function init() {
 	initializeTabs();
 	
-	$("#div-stock-note").hide();
-	$("#stock-note-control").hide();
-
-	/*
-	backgroundPage = chrome.extension.getBackgroundPage();
-	
-	if ( backgroundPage.Settings.getValue("displayAlert", true) ) {
-		if ( isWebkitHTMLNotificationsEnabled() ) {
-			 if ( webkitNotifications.checkPermission() == 0 ) 	$("#displayAlertInput").attr("checked", "checked");
-		}
-		else {
-			$("#displayAlertInput").attr("checked", "checked");
-		}
-	}
-	
-	if(backgroundPage.Settings.getValue("soundAlert", true)) {
-		$("#soundAlertInput").attr("checked", "checked");
-	}
-	
-	if(backgroundPage.Settings.getValue("animateAlert", false)) {
-		$("#animateAlertInput").attr("checked", "checked");
-	}
-	
-	if(backgroundPage.Settings.getValue("showPrice", true)) {
-		$("#showPriceInput").attr("checked", "checked");
-	}
-	
-	if(backgroundPage.Settings.getValue("showPicture", true)) {
-		$("#showStockPicture").attr("checked", "checked");
-	}
-	
-	if(backgroundPage.Settings.getValue("showSinaLink", false)) {
-		$("#showSinaLinkInput").attr("checked", "checked");
-	}
-	
-	$('.alertRow input[type=checkbox]').change(function(e) {
-        var name = e.target.name;
-        
-        if (name == "displayAlert" && e.target.checked == true) {
-        	if ( isWebkitHTMLNotificationsEnabled() ) {
-	        	if(webkitNotifications.checkPermission() != 0) {
-					webkitNotifications.requestPermission(function() {
-						if(webkitNotifications.checkPermission() != 0) {
-							e.target.checked = false;
-						}
-					});
-				}
-			}
-        }
-        backgroundPage.Settings.setValue(name, e.target.checked);
-        backgroundPage.displayStocks();
-        
-        showMessage("自动保存成功");
-    });
-    */
-
-	$("textarea#txtStockNote").autoResize({
-		defaultHeight: 88,
-		animate: false,
-		animateDuration : 300,
-		extraSpace : 30,
-		limit: 520
-	});
-
 	$("#btnNewStock").click(function() { newStockRow(undefined, true); });
 	$("#btnLoadStock").click(function() { updateStockPriceNew(); });
 	$("#btnSaveStock").click(function() { saveOptions(); });
-	$("#btnBackOptions").click(function() { backOptionsPage(); });
-	$("#btnSaveStockNote").click(function() { saveStockNote(); });
-	$("#btnExportStock").click(function() { exportStock(); });
-	$("#btnImportStock").click(function() { importStock(); });
 	
-	$("#stocksTable").delegate(".note", "click", function(){ showStockNote(); });
 	$("#stocksTable").delegate(".delete", "click", function(){ deleteStockRow(); });
 	$("#stocksTable").delegate(".flag", "click", function(){ flagStock(); });
 	$("#stocksTable #template").hide(); 
@@ -176,20 +68,8 @@ function init() {
     window.setTimeout(updateStockPriceLoop, 0);
 }
 function initializeTabs() {
-	$("ul.menu li:first").addClass("tabActive").show(); 
 	$("#options > div").hide();
 	$("#custom-stock-infos").show();
-	
-	$("ul.menu li").click(function() {
-
-		$("ul.menu li").removeClass("tabActive"); 
-		$(this).addClass("tabActive");
-		$("#options > div").hide();
-		
-		var activeTab = $(this).find("a").attr("href");
-		$(activeTab).fadeIn();
-		return false;
-	});
 }
 function initializeStockRow() {
 	$("#stocksTable .tableRow").remove();
@@ -346,7 +226,6 @@ function newStockRow(stock, activate) {
 	});
 	
 	$(".stockCode", row).click(function() {
-		//openStockPage($(this).text());
 		showCode=$(this).text();
 		setFigureSrc();
 	});
@@ -367,7 +246,6 @@ function newStockRow(stock, activate) {
 		if (Settings.getValue("note_" + stock.stockCode, "") != "") {
 			$(".note", row).addClass("pressed");
 		}
-		//updateStockInfo(row);
 	}
 	else {
 		$(".dragHandle", row).removeClass("dragHandle").attr("title", "");
@@ -393,34 +271,6 @@ function flagStock() {
 	console.log("flag");
 }
 
-function showStockNote() {
-	var row = $(event.target.parentNode.parentNode);
-	
-	var stockCode = $(".stockCode", row).text();
-	
-	if (stockCode != "") {
-		$("#noteTitle").text("“" + $(".stockName", row).text() + " | " + stockCode + "” 的备注：");
-		
-		if ($("textarea#txtStockNote").attr("tag") != stockCode) {
-			$("textarea#txtStockNote").val(Settings.getValue("note_" + stockCode, "")).attr("tag", stockCode);
-		}
-		
-		$("textarea#txtStockNote").focus();
-	}
-	
-	$("#stocksTable").hide();
-	$("#custom-stock-control").hide();
-	$("#div-stock-note").show();
-	$("#stock-note-control").show();
-}
-
-function backOptionsPage() {
-	$("#div-stock-note").hide();
-	$("#stock-note-control").hide();
-	$("#stocksTable").show();
-	$("#custom-stock-control").show();
-}
-
 function deleteStockRow() {
 	var row = event.target.parentNode.parentNode;
 	
@@ -435,19 +285,6 @@ function deleteStockRow() {
 		$(event.target).removeClass("pressed");
 }
 
-function exportStock() {
-	var stockListStocks = Settings.getObject("stockListStocks");
-	var strStockInfo = JSON.stringify(stockListStocks);
-	strStockInfo = strStockInfo.replace(/},/g, "},\r\n");
-	
-	var textarea = $("#txtBackup");
-	textarea.val(strStockInfo);
-	textarea.focus();
-	textarea.select();
-	
-	showMessage("导出数据成功，请保存");
-}
-
 function importStock() {	
 	var json = $("#txtBackup").val();
     if (json && json != "")
@@ -460,19 +297,14 @@ function importStock() {
 				
 				Settings.setValue("popupStockPosition", 0);
 				
-				//backgroundPage.reloadSock = true;
-				//backgroundPage.refreshStocks();
-				
 				initializeStockRow();
 				
 				saveOptions();
 				
-				showMessage("导入成功");
 			}
         }
         catch(e) {
 			console.log(e);
-			showMessage("导入失败，请重试");
 		}
     }
 }

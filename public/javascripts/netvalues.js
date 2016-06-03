@@ -1,36 +1,48 @@
 $(document).ready(function() {
     init_netvalue();
 });
-function init_order_modal(){
-}
 function init_netvalue(){
 	g_netvalues.shift();
 	display_netvalue();
 }
-/*
-function figure_tabel_toggle(){
+function figure_tabel_toggle(btn){
 	var fig = $('#netvalue_figure');
-	var table = $('#netvalue_chart');
+	var table = $('#netvalue_table');
 	fig.toggle();
 	table.toggle();
 }
 
 function draw_figure(){
-	var paper = new Raphael(document.getElementById('netvalue_figure'),680,400);
-	var x = [];
-	var y = [];
-	var opts = {smooth: false, colors: ['red', 'blue', 'green'], symbol: 'circle'};
+	//Get context with jQuery - using jQuery's .get() method.
+	var ctx = $("#netvalue_chart").get(0).getContext("2d");
+
+	var opts = {};
+	var x_value = [];
+	var y_value = [];
 	for(var i=0; i< g_netvalues.length;i++){
-		x.push(g_netvalues[i].Date);
-		y.push(g_netvalues[i].Value);
+		x_value.push(g_netvalues[i].Date);
+		y_value.push(g_netvalues[i].Value);
 	}
-	//fig.linechart();  
-	var circle = paper.circle(100, 100, 80);
+
+	var dataset = {};
+	dataset.label = 'Net Value';
+	dataset.data = y_value;
+	dataset.backgroundColor = "rgba(75,192,192,0.4)";
+
+	var data = {};
+	data.labels = x_value;
+	data.datasets=[];
+	data.datasets.push(dataset);
+	
+	var params = {};
+	params.type='line';
+	params.data=data;
+	params.options = opts;
+	var chart = new Chart(ctx,params);
 
 }
-*/
 function display_netvalue() {
-    //draw_figure();
+    draw_figure();
     var rows = $("#netvalues_table .tableRow");
     var netvalues = get_netvalues();
     for(var i=0; i<netvalues.length - rows.length;i++){
