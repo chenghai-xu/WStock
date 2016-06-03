@@ -261,30 +261,9 @@ Driver.prototype.valueToProperty = function (value, property) {
 			}
 			break;
 		case "date":
-            if (typeof value == 'string') {
-                value = new Date(value);
-            }
-            /*
-            if (typeof value == 'string') {
-                value = new Date(value);
-				if (value.indexOf('Z', value.length - 1) === -1) {
-					value = new Date(value + 'Z');
-				} else {
-					value = new Date(value);
-				}
-
-				if (this.config.timezone && this.config.timezone != 'local') {
-					var tz = convertTimezone(this.config.timezone);
-
-					// shift local to UTC
-					value.setTime(value.getTime() - (value.getTimezoneOffset() * 60000));
-					if (tz !== false) {
-						// shift UTC to timezone
-						value.setTime(value.getTime() - (tz * 60000));
-					}
-				}
+			if (typeof value == 'string') {
+				value = new Date(value);
 			}
-            */
 			break;
 		default:
 			customType = this.customTypes[property.type];
