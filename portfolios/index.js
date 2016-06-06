@@ -284,27 +284,32 @@ router.get('/position',function(req, res) {
 
 function on_insert_historical(historicals){
 	console.log('receive event: historical, insert. ');
+	//update trade day info.
 	for(var i=0; i<historicals.length; i++){
 		trade_day.add(moment(historicals[0].Date).format('YYYY-MM-DD'));
 	}
 	if(historicals.length<1) return;
+	//loop each portfolio
 	database.models.portfolio.find().each(function(portfolio){
+		//only process portfolio which has order
 		database.models.order.count({Portfolio:portfolio.uid},function(o_err,count){
 			if(o_err) throw o_err;
 			if(count<1) return;
 
+			//the begin date of the historical
 			var min = moment(moment(historicals[0].Date).format('YYYY-MM-DD'));
 			for(var i=0; i< historicals.length; i++){
 				var dt = moment(historicals[i].Date).format('YYYY-MM-DD');
 				if(moment(dt).diff(min)<0) min = dt;
 			}
 
+			//only insert netvalue after the last order time
 			var order_time = moment(portfolio.Order_Time).format('YYYY-MM-DD');
 			if(moment(order_time).diff(min)>0) min = order_time;
 			var dates = new Set();
 			for(var i=historicals.length - 1; i>=0 ;i--){
 				if(moment(historicals[i].Date).diff(min)<0) break;
-				dates.add(dt);
+				dates.add(moment(historicals[i].Date).format('YYYY-MM-DD'));
 			}
 			if(dates.size<1) return;
 			control.netvalue.insert_netvalue(database.models.netvalue,dates,portfolio.uid,function(flag){
@@ -314,22 +319,37 @@ function on_insert_historical(historicals){
 	});
 }
 function update_netvalue(portfolio,dt){
-	database.models.netvalue.find({Portfolio:portfolio.uid, Time: orm.lt(dt)}).order('-Time').limit(1).run(function(err,last){
+	debug('update netvalue, portfolio: %s, the begin date: %s',portfolio.uid,dt);
+	database.models.netvalue.find({Portfolio:portfolio.uid, Date: orm.lt(dt)}).order('-Date').limit(30).run(function(err,items){
 		if(err) throw err;
-		if(last.length<1) return;
-		var beg = last[0].Time;
-		var p_time = moment(portfolio.Order_Time).format('YYYY-MM-DD');
-		//Only caculate net values begin from date of latest order time 
-		if(moment(beg).diff(p_time)<0) beg = p_time;
-		database.models.netvalue.find({Portfolio:portfolio.uid, Time: orm.gte(beg)}).order('Time').run(function(err,netvalues){
+		if(items.length<1) return;
+		var beg = null;
+		for(var i=0; i<items.length-1; i++){
+			if(items[i].Share != 0 ){
+				beg = items[i].Date;
+				break;
+			}
+		}
+		if(!beg){
+			console.log('can not find the init netvalue, please do data mantain first.');
+			return;
+		}
+
+		var p_Date = moment(portfolio.Order_Time).format('YYYY-MM-DD');
+		if(moment(beg).diff(p_Date)<0){
+			console.log('the netvalue at last order time day is not evaluted correctly, please do data mantain first.');
+			return;
+		}
+		debug('Only caculate net values begin from date of latest order date, begin date is now: %s',beg);
+		database.models.netvalue.find({Portfolio:portfolio.uid, Date: orm.gte(beg)}).order('Date').run(function(err,netvalues){
 			if(err) throw err;
 			if(netvalues.length<1) return;
 			database.models.position.find({Portfolio:portfolio.uid},function(err,positions){
 				if(err) throw err;
 				if(positions.length<1) return;
-				var pos_map = new Set();
+				var pos_map = new Map();
 				for(var i=0; i< positions.length; i++){
-					pos_map.add(positions[i].Code,positions[i]);
+					pos_map.set(positions[i].Code,positions[i]);
 				}
 				var beg_idx = 0;
 				control.netvalue.recalc_value(quotes_db,pos_map,control.position,netvalues,beg_idx,function(){
@@ -347,6 +367,7 @@ function update_netvalue(portfolio,dt){
 
 function on_update_current_quote(current_quotes){
 	if(current_quotes.length<1) return;
+	//try to update trade day.
 	var dt = moment(current_quotes[0].Time).format('YYYY-MM-DD');
 	trade_day.add(dt);
 	database.models.portfolio.find().each(function(portfolio){
@@ -355,7 +376,10 @@ function on_update_current_quote(current_quotes){
 			if(count<1) return;
 			var dates = new Set();
 			dates.add(dt);
+			//try to insert netvalue
 			control.netvalue.insert_netvalue(database.models.netvalue,dates,portfolio.uid,function(flag){
+				//update netvalue if we insert netvalue.
+				if(flag) update_netvalue(portfolio,dt);
 				//update position
 				update_position();
 			});

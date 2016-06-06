@@ -92,13 +92,9 @@ function recalc_value(quotes_db,pos_map,pos_control,netvalues,beg_idx,cb){
 
 function do_calc_value(assets,netvalues,beg_idx,cb){
 	for(var i=beg_idx; i< netvalues.length; i++){
+		if(i!=beg_idx) netvalues[i].Share = netvalues[i-1].Share;
 		netvalues[i].Total = assets.get(netvalues[i].Date);
 		netvalues[i].Value = parseFloat(netvalues[i].Total/netvalues[i].Share);
-		/*
-		netvalues[i].save(function(err){
-			if(err) throw err;
-		});
-		*/
 	}
 	return cb();
 }
