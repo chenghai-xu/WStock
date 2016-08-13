@@ -23,13 +23,17 @@ do_trade_each : do_trade_each,
 event 	:event
 }
 function calc_asset(quotes_db,pos_map,dt,cb){
+	//console.log("position.calc_asset");
+	//console.log("date: %s",dt);
 	var total = Number(0);
 	var count = 0;
 	for(let pos of pos_map.values()){
 		calc_each(quotes_db,pos,dt,function(t){
 			total += t;
 			count ++;
+			//console.log("position size %s, count %s",pos_map.size,count);
 			if(count == pos_map.size){
+				//console.log("return now");
 				cb(dt,total);
 			}
 		});
@@ -37,8 +41,11 @@ function calc_asset(quotes_db,pos_map,dt,cb){
 }
 function calc_each(quotes_db,pos, dt,cb){
 	var code = pos.Code;
+	//console.log("position.calc_each");
+	console.log("code: %s, date %s",code,dt);
 	if(code === 'CASH') return cb(pos.Volume);
 	quotes_db.models.historical.find({Code:code,Date: orm.lte(dt)}).order('-Date').limit(1).run(function(err,historicals){
+		console.log("find historical. code: %s, date",code,dt);
 		if(err) throw err;
 		if(historicals.length>0){
 			return cb( parseFloat(pos.Volume * historicals[0].Close) );
@@ -192,6 +199,7 @@ function trade_status()
 	return {flag:false,msg:'',Codes:[]};
 }
 function do_trade_cash(pos_map,order){
+	console.log("position.do_trade_cash");
 	var t_stat=trade_status();
 	t_stat.flag=false;
 	var pos_cash = pos_map.get(order.Code);
@@ -208,6 +216,7 @@ function do_trade_cash(pos_map,order){
 		t_stat.flag=true;
 		t_stat.msg='OK.';
 		t_stat.Codes.push(order.Code);
+		//console.log("SUBSCRIBE");
 		
 	}
 	else if(order.Type == 'REDEEM' && order.Amount < pos_cash.Current_Amount){
@@ -219,15 +228,18 @@ function do_trade_cash(pos_map,order){
 		t_stat.flag=true;
 		t_stat.msg='OK.';
 		t_stat.Codes.push(order.Code);
+		//console.log("REDEEM");
     	}
 	else{
 		t_stat.flag=true;
 		t_stat.msg='Invalide order type or insufficient cash.';
+		//console.log("FALSE");
 	}
 	return t_stat;
 }
 
 function do_trade_asset(pos_map,order){
+	console.log("position.do_trade_asset");
 	var t_stat=trade_status();
 	t_stat.flag=false;
 	var pos_asset = pos_map.get(order.Code);
@@ -254,6 +266,7 @@ function do_trade_asset(pos_map,order){
 		t_stat.flag=true;
 		t_stat.Codes.push(order.Code);
 		t_stat.Codes.push(cash_code);
+		//console.log("BUY");
 	}
 	else if(order.Type == 'SELL' && pos_asset.Volume >= order.Volume){
 		pos_asset.Volume -= order.Volume;
@@ -269,6 +282,7 @@ function do_trade_asset(pos_map,order){
 		t_stat.flag=true;
 		t_stat.Codes.push(order.Code);
 		t_stat.Codes.push(cash_code);
+		//console.log("SELL");
     	}
 	else if(order.Type == 'DELIVERY'){
 		pos_asset.Volume += order.Volume;
@@ -277,6 +291,7 @@ function do_trade_asset(pos_map,order){
 		t_stat.msg='OK.';
 		t_stat.flag=true;
 		t_stat.Codes.push(order.Code);
+		//console.log("DELIVERY");
     	}
 	else if(order.Type == 'DIVIDEN'){
 		pos_asset.Cost_Amount -= order.Amount;
@@ -289,32 +304,42 @@ function do_trade_asset(pos_map,order){
 		t_stat.msg='OK.';
 		t_stat.flag=true;
 		t_stat.Codes.push(cash_code);
+		//console.log("DIVIDEN");
     	}
 	else{
 		t_stat.flag=false;
 		t_stat.msg='Insufficient cash or asset volume.';
+		//console.log("FALSE");
 	}
 	return t_stat;
 }
 
 
 function do_trade_each(pos_map,order){
+	var stat = null;
+	console.log("position.do_trade_each");
+	//console.log("position: ",pos_map);
+	//console.log(order.Time,order.Code,order.Type,order.Volume,order.Amount);
         if(order.Amount<=0){
-		var stat = trade_status();
+		stat = trade_status();
 		stat.flag=false;
 		stat.msg='Order amount < 0.';
 		return stat;
 	}
 
 	if(order.Code == cash_code){
-		return do_trade_cash(pos_map,order);
+		stat = do_trade_cash(pos_map,order);
 	}
-	return do_trade_asset(pos_map,order);
+	else{ 
+		stat = do_trade_asset(pos_map,order);
+	}
+	//console.log("position: ",pos_map);
+	return stat;
 }
 
 function create_or_save_position(req,portfolio,pos_map) {
 	for(let pos of pos_map.values()){
-	    debug('save position: ',pos.Code,', volume',pos.Volume);
+	    console.log('save position: ',pos.Code,', volume',pos.Volume);
 	    if(pos.Volume<=0 && pos.Code != cash_code){
 		    if(pos.save){
 			    pos.remove(function(error){

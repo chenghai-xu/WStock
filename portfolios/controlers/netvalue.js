@@ -3,6 +3,7 @@ var orm      = require('orm');
 var moment = require('moment');
 var debug = require('debug')('express:portfolios');
 var EventEmitter = require('events').EventEmitter; 
+var Q = require('q');
 var event = new EventEmitter();
 
 module.exports = {
@@ -15,6 +16,7 @@ module.exports = {
 	recalc_value: recalc_value,
 	new_netvalue: new_netvalue,
 	share_change : share_change,
+	calculate_netvalue, calculate_netvalue,
 	sort: sort,
 	event: event
 }
@@ -78,19 +80,96 @@ function netvalue_ready(req,pos_map,pos_control,order,prev_date){
 	});
 }
 
+function calculate_netvalue(quotes_db,pos_map,pos_control,netvalues,beg_idx){
+	var ret_deferred = Q.defer(); 
+	var hist_map  = new Map();
+	var dt = netvalues[beg_idx].Date;
+	var find = function(args){
+		return function(){
+			var deferred = Q.defer(); 
+			quotes_db.models.historical.find(args).order('Date').run(function(err,historicals){
+				if(err){
+					deferred.reject(new Error(err));
+					return;
+				}
+				if(historicals.length>0){
+					hist_map.set(historicals[0].Code,historicals);
+					console.log('get historical, time',moment().toISOString(),'map size',hist_map.size);
+				}
+				deferred.resolve();
+			});
+			return deferred.promise;
+		};
+	};
+
+	var task = [];
+	for(let pos of pos_map.values()){
+		if(pos.Code == 'CASH'){
+			continue;
+		}
+		task.push(find({Code:pos.Code,Date: orm.gte(dt)}));
+	}
+	var result = Q();
+	task.forEach(function (f) {
+		result = result.then(f);
+	});
+
+	result
+	.then(function (){
+		console.log('get all historicals, time',moment().toISOString(), 'map size ', hist_map.size);
+		console.log('calculate netvalue, netvalue index %s, netvalue length %s', beg_idx,netvalues.length);
+		debugger;
+		do_calculate_netvalue(hist_map,pos_map,netvalues,beg_idx);
+		ret_deferred.resolve(); 
+	})
+	.catch(function (error){
+		ret_deferred.resolve(); 
+	})
+	.done();
+	return ret_deferred.promise;
+}
+
+function do_calculate_netvalue(hist_map,pos_map,netvalues,beg_idx){
+	console.log('calculate netvalue, netvalue index %s, netvalue length %s', beg_idx,netvalues.length);
+	var asset = 0;
+	for(var i= beg_idx; i<netvalues.length;i++)
+	{
+		for(let pos of pos_map.values()){
+			if(pos.Code == 'CASH'){
+				asset += pos.Volume;
+				continue;
+			}
+			var hist = hist_map.get(pos.Code);
+			asset += pos.Volume * hist[i].Close;
+		}
+		netvalues[i].Total = asset;
+		netvalues[i].Value = parseFloat(netvalues[i].Total/netvalues[i].Share);
+		console.log(i,netvalues[i].Date,netvalues[i].Value,netvalues[i].Share,netvalues[i].Total);
+		asset = 0;
+	}
+}
+
 function recalc_value(quotes_db,pos_map,pos_control,netvalues,beg_idx,cb){
+	//console.log("netvalue.recalc_value");
+	//console.log("position ", pos_map);
+	//console.log("begin: %s, netvalue length: %s",beg_idx,netvalues.length);
 	var assets = new Map();
 	for(var i=beg_idx; i< netvalues.length; i++){
 		pos_control.calc_asset(quotes_db,pos_map,netvalues[i].Date,function(dt,total){
 			assets.set(dt,total);
+			//console.log("%s,%s",dt,total);
+			//console.log("%s,%s",assets.size,netvalues.length - beg_idx);
 			if(assets.size == netvalues.length - beg_idx){
 				do_calc_value(assets,netvalues,beg_idx,cb);
+			}
+			else {
 			}
 		});
 	}
 }
 
 function do_calc_value(assets,netvalues,beg_idx,cb){
+	//console.log("netvalue.do_calc_value");
 	for(var i=beg_idx; i< netvalues.length; i++){
 		if(i!=beg_idx) netvalues[i].Share = netvalues[i-1].Share;
 		netvalues[i].Total = assets.get(netvalues[i].Date);

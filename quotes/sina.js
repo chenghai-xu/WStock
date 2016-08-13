@@ -17,6 +17,8 @@ function download_sina(list, callback) {
     res.on('error',function(){
       callback(msg,encoding.convert(cont,'utf8','gbk').toString());
     });
+  }).on('error',function(e){
+    console.log('get error: ',e.message);
   });
 }
 

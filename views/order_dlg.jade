@@ -38,17 +38,17 @@ div(class='modal fade container',id='new-order-modal', tabindex='-1',role='dialo
         div(class='form-group')
           label(class='col-sm-1 control-label') 数量 
           div(class='col-sm-2')
-            input(id='order-volume',name='order-volume',type='number',class='form-control',onblur='exit_volume_input(this)',min='0', required)
+            input(id='order-volume',name='order-volume',type='number',class='form-control',step='0.001',onblur='exit_volume_input(this)',min='0', required)
           div(class='col-sm-2')
             label(id='order-volume-tip')
         div(class='form-group')
           label(class='col-sm-1 control-label') 费用 
           div(class='col-sm-2')
-            input(id='order-fee',name='order-fee',type='number',class='form-control', value='0', min='0', required)
+            input(id='order-fee',name='order-fee',type='number',class='form-control',step='0.001', value='0', min='0', required)
         div(class='form-group')
           label(class='col-sm-1 control-label') 金额 
           div(class='col-sm-2')
-            input(id='order-amount',name='order-amount',type='number',class='form-control', onfocus='enter_amount_input(this)', min='0', required)
+            input(id='order-amount',name='order-amount',type='number',class='form-control',step='0.001', onfocus='enter_amount_input(this)', min='0', required)
         div(class='form-group')
           div(class='col-sm-1')
           div(class='col-sm-1')
