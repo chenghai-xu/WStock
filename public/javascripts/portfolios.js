@@ -213,10 +213,20 @@ function openNetValue(id) {
 function updatePortfolioRow(row,portfolio,id) {
    	$("#p_id", row).text(id);
   	$("#p_name", row).text(portfolio.Name);
-   	$("#p_total", row).text(portfolio.Total);
-   	$("#p_cash", row).text(portfolio.Cash);
-   	$("#p_asset", row).text(portfolio.Asset);
-   	$("#p_gain", row).text(portfolio.Gain);
+   	$("#p_total", row).text((portfolio.Cash+portfolio.Asset).toFixed(4));
+   	$("#p_cash", row).text(portfolio.Cash.toFixed(4));
+   	$("#p_asset", row).text(portfolio.Asset.toFixed(4));
+   	$("#p_cost", row).text(portfolio.Cost.toFixed(4));
+   	$("#p_gain", row).text(portfolio.Gain.toFixed(4));
+   	$("#p_gain_rate", row).text(portfolio.Gain_Rate.toFixed(4)+'%');
+    if(portfolio.Gain>0){
+        $("#p_gain", row).parent().addClass("gain_up").removeClass("gain_down");
+        $("#p_gain_rate", row).parent().addClass("gain_up").removeClass("gain_down");
+    }
+    else{
+        $("#p_gain", row).parent().addClass("gain_down").removeClass("gain_up");
+        $("#p_gain_rate", row).parent().addClass("gain_down").removeClass("gain_up");
+    }
 
 }
 

@@ -3,6 +3,7 @@ var moment = require('moment');
 var orm = require('orm');
 var debug = require('debug')('express:portfolios');
 var EventEmitter = require('events').EventEmitter; 
+var Q = require('q');
 var event = new EventEmitter();
 var cash_code = 'CASH';
 var cash_name = '现金';
@@ -20,6 +21,8 @@ new_position: new_position,
 create_or_save_position : create_or_save_position,
 trade_status : trade_status,
 do_trade_each : do_trade_each,
+save_or_create: save_or_create,
+calculate_current : calculate_current,
 event 	:event
 }
 function calc_asset(quotes_db,pos_map,dt,cb){
@@ -203,37 +206,48 @@ function do_trade_cash(pos_map,order){
 	var t_stat=trade_status();
 	t_stat.flag=false;
 	var pos_cash = pos_map.get(order.Code);
-	if(pos_cash==null)
-	{
+	if(pos_cash==null){
 		pos_cash = new_position(order.Code,order.Name);
 	}
+    //The interest income will be always increase current amount.
+    //The interest income of cash will be DIVIDEN(infact DELIVERY also make sense) 
+    //The interest income will not effect netvalue share.
+    //The price of cash always be 1, and the volume always be the same as current amount.
 	if(order.Type == 'SUBSCRIBE') {
 		pos_cash.Current_Amount += order.Amount;
 		pos_cash.Volume = pos_cash.Current_Amount;
-		pos_cash.Cost_Amount = pos_cash.Current_Amount;
+		pos_cash.Cost_Amount += order.Amount;
 		pos_cash.Current_Price = pos_cash.Cost_Price=1;
 		pos_map.set(cash_code,pos_cash);
 		t_stat.flag=true;
 		t_stat.msg='OK.';
 		t_stat.Codes.push(order.Code);
-		//console.log("SUBSCRIBE");
 		
 	}
 	else if(order.Type == 'REDEEM' && order.Amount < pos_cash.Current_Amount){
 		pos_cash.Current_Amount -= order.Amount;
 		pos_cash.Volume = pos_cash.Current_Amount;
-		pos_cash.Cost_Amount = pos_cash.Current_Amount;
+		pos_cash.Cost_Amount -= order.Amount;
 		pos_cash.Current_Price = pos_cash.Cost_Price=1;
 		pos_map.set(cash_code,pos_cash);
 		t_stat.flag=true;
 		t_stat.msg='OK.';
 		t_stat.Codes.push(order.Code);
-		//console.log("REDEEM");
-    	}
-	else{
+    }
+	else if(order.Type == 'DIVIDEN'){
+        //interest income always only increase current amount.
+		pos_cash.Current_Amount += order.Amount;
+		pos_cash.Volume = pos_cash.Current_Amount;
+		//pos_cash.Cost_Amount = order.Current_Amount;
+		pos_cash.Current_Price = pos_cash.Cost_Price=1;
+		pos_map.set(cash_code,pos_cash);
+		t_stat.flag=true;
+		t_stat.msg='OK.';
+		t_stat.Codes.push(order.Code);
+    }
+    else{
 		t_stat.flag=true;
 		t_stat.msg='Invalide order type or insufficient cash.';
-		//console.log("FALSE");
 	}
 	return t_stat;
 }
@@ -258,7 +272,8 @@ function do_trade_asset(pos_map,order){
 		pos_asset.Cost_Price = pos_asset.Cost_Amount/pos_asset.Volume;
 		pos_cash.Current_Amount -= order.Amount;
 		pos_cash.Volume = pos_cash.Current_Amount;
-		pos_cash.Cost_Amount = pos_cash.Current_Amount;
+        //pos_cash.Cost_Amount = pos_cash.Current_Amount;
+		pos_cash.Cost_Amount -= order.Amount;
 		pos_cash.Current_Price = pos_cash.Cost_Price=1;
 		pos_map.set(cash_code,pos_cash);
 		pos_map.set(pos_asset.Code,pos_asset);
@@ -266,50 +281,47 @@ function do_trade_asset(pos_map,order){
 		t_stat.flag=true;
 		t_stat.Codes.push(order.Code);
 		t_stat.Codes.push(cash_code);
-		//console.log("BUY");
 	}
-	else if(order.Type == 'SELL' && pos_asset.Volume >= order.Volume){
-		pos_asset.Volume -= order.Volume;
-		pos_asset.Cost_Amount -= order.Amount;
-		pos_asset.Cost_Price = pos_asset.Cost_Amount/pos_asset.Volume;
-		pos_cash.Current_Amount += order.Amount;
-		pos_cash.Volume = pos_cash.Current_Amount;
-		pos_cash.Cost_Amount = pos_cash.Current_Amount;
-		pos_cash.Current_Price = pos_cash.Cost_Price=1;
-		pos_map.set(cash_code,pos_cash);
-		pos_map.set(pos_asset.Code,pos_asset);
-		t_stat.msg='OK.';
-		t_stat.flag=true;
-		t_stat.Codes.push(order.Code);
-		t_stat.Codes.push(cash_code);
-		//console.log("SELL");
-    	}
-	else if(order.Type == 'DELIVERY'){
-		pos_asset.Volume += order.Volume;
-		pos_asset.Cost_Price = pos_asset.Cost_Amount/pos_asset.Volume;
-		pos_map.set(pos_asset.Code,pos_asset);
-		t_stat.msg='OK.';
-		t_stat.flag=true;
-		t_stat.Codes.push(order.Code);
-		//console.log("DELIVERY");
-    	}
-	else if(order.Type == 'DIVIDEN'){
-		pos_asset.Cost_Amount -= order.Amount;
-		pos_asset.Cost_Price = pos_asset.Cost_Amount/pos_asset.Volume;
-		pos_cash.Current_Amount += order.Amount;
-		pos_cash.Volume = pos_cash.Current_Amount;
-		pos_cash.Cost_Amount = pos_cash.Current_Amount;
-		pos_cash.Current_Price = pos_cash.Cost_Price=1;
-		pos_map.set(cash_code,pos_cash);
-		t_stat.msg='OK.';
-		t_stat.flag=true;
-		t_stat.Codes.push(cash_code);
-		//console.log("DIVIDEN");
-    	}
-	else{
+    else if(order.Type == 'SELL' && pos_asset.Volume >= order.Volume){
+        pos_asset.Volume -= order.Volume;
+        pos_asset.Cost_Amount -= order.Amount;
+        pos_asset.Cost_Price = pos_asset.Cost_Amount/pos_asset.Volume;
+        pos_cash.Current_Amount += order.Amount;
+        pos_cash.Volume = pos_cash.Current_Amount;
+        //pos_cash.Cost_Amount = pos_cash.Current_Amount;
+		pos_cash.Cost_Amount += order.Amount;
+        pos_cash.Current_Price = pos_cash.Cost_Price=1;
+        pos_map.set(cash_code,pos_cash);
+        pos_map.set(pos_asset.Code,pos_asset);
+        t_stat.msg='OK.';
+        t_stat.flag=true;
+        t_stat.Codes.push(order.Code);
+        t_stat.Codes.push(cash_code);
+    }
+    else if(order.Type == 'DELIVERY'){
+        pos_asset.Volume += order.Volume;
+        pos_asset.Cost_Price = pos_asset.Cost_Amount/pos_asset.Volume;
+        pos_map.set(pos_asset.Code,pos_asset);
+        t_stat.msg='OK.';
+        t_stat.flag=true;
+        t_stat.Codes.push(order.Code);
+    }
+    else if(order.Type == 'DIVIDEN'){
+        pos_asset.Cost_Amount -= order.Amount;
+        pos_asset.Cost_Price = pos_asset.Cost_Amount/pos_asset.Volume;
+        pos_cash.Current_Amount += order.Amount;
+        pos_cash.Volume = pos_cash.Current_Amount;
+        //pos_cash.Cost_Amount = pos_cash.Current_Amount;
+		pos_cash.Cost_Amount += order.Amount;
+        pos_cash.Current_Price = pos_cash.Cost_Price=1;
+        pos_map.set(cash_code,pos_cash);
+        t_stat.msg='OK.';
+        t_stat.flag=true;
+        t_stat.Codes.push(cash_code);
+    }
+    else{
 		t_stat.flag=false;
 		t_stat.msg='Insufficient cash or asset volume.';
-		//console.log("FALSE");
 	}
 	return t_stat;
 }
@@ -318,8 +330,6 @@ function do_trade_asset(pos_map,order){
 function do_trade_each(pos_map,order){
 	var stat = null;
 	console.log("position.do_trade_each");
-	//console.log("position: ",pos_map);
-	//console.log(order.Time,order.Code,order.Type,order.Volume,order.Amount);
         if(order.Amount<=0){
 		stat = trade_status();
 		stat.flag=false;
@@ -333,7 +343,6 @@ function do_trade_each(pos_map,order){
 	else{ 
 		stat = do_trade_asset(pos_map,order);
 	}
-	//console.log("position: ",pos_map);
 	return stat;
 }
 
@@ -374,4 +383,97 @@ function create_or_save_position(req,portfolio,pos_map) {
 		    });
 	    }
 	}
+}
+
+function save_or_create(database,pos_map) {
+    var ret_deferred = Q.defer();
+    var result = Q();
+	for(let pos of pos_map.values()){
+        result=result
+        .then(function(){
+            var deferred = Q.defer();
+            Q.ninvoke(database.models.position,'find',{Code:pos.Code,Portfolio:pos.Portfolio})
+            .then(function(positions){
+                if(positions.length>0){
+                    positions[0].Name             = pos.Name          ;
+                    positions[0].Volume           = pos.Volume        ;
+                    positions[0].Current_Price    = pos.Current_Price ;
+                    positions[0].Current_Amount   = pos.Current_Amount;
+                    positions[0].Cost_Price       = pos.Cost_Price    ;
+                    positions[0].Cost_Amount      = pos.Cost_Amount   ;
+                    positions[0].Gain             = pos.Gain          ;
+                    positions[0].Gain_Rate        = pos.Gain_Rate     ;
+                    return Q.ninvoke(positions[0],'save');
+                }
+                return Q.ninvoke(database.models.position,'create',pos);
+            })
+            .then(function(){
+                deferred.resolve();
+            })
+            .catch(function(error){
+                console.log('error',error);
+                deferred.resolve();
+            }).done();
+            return deferred;
+        });
+    }
+    result
+    .then(function(){
+        ret_deferred.resolve();
+    })
+    .catch(function(error){
+        console.log('error: ',error);
+        ret_deferred.resolve();
+    }).done();
+    return ret_deferred.promise;
+}
+
+function calculate_current(quotes_db,pos_map){
+    var ret_deferred = Q.defer();
+    var quote_map = new Map();
+    var result = Q();
+	for(let pos of pos_map.values()){
+        result=result
+        .then(function(){
+            var deferred = Q.defer();
+            if(pos.Code == cash_code){
+                deferred.resolve();
+                return deferred.promise;
+            }
+            Q.ninvoke(quotes_db.models.current_quote,'find',{Code:pos.Code})
+            .then(function(quotes){
+                if(quotes.length>0){
+                    quote_map.set(quotes[0].Code,quotes[0]);
+                }
+            })
+            .then(function(){
+                deferred.resolve();
+            })
+            .catch(function(error){
+                console.log('error',error);
+                deferred.resolve();
+            }).done();
+            return deferred.promise;
+        });
+    }
+    result.then(function(){
+	    for(let pos of pos_map.values()){
+            if(pos.Code != cash_code){
+                var quote = quote_map.get(pos.Code);
+                pos.Current_Price = quote.Current == 0 ? quote.Close : quote.Current;
+            }
+            pos.Current_Amount = pos.Volume * pos.Current_Price;
+            pos.Gain = pos.Current_Amount - pos.Cost_Amount;
+            pos.Gain_Rate = 100 * pos.Gain/pos.Cost_Amount;
+        }
+    })
+    .then(function(){
+        ret_deferred.resolve();
+    })
+    .catch(function(error){
+        console.log('error',error);
+        ret_deferred.resolve();
+    }).done();
+    return ret_deferred.promise;
+
 }

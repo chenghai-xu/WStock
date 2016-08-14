@@ -1,5 +1,7 @@
+'use strict';
 var debug = require('debug')('express:portfolio');
 var EventEmitter = require('events').EventEmitter; 
+var Q = require('q');
 var event = new EventEmitter();
 var db = null;
 
@@ -10,6 +12,7 @@ create : create,
 get    : get,
 save   : save,
 init   : init,
+update_position   : update_position,
 event  : event
 }
 
@@ -93,6 +96,28 @@ function save(items_TB, params, callback) {
             });
 
         });
+}
+function update_position(portfolio,pos_map){
+    portfolio.Cash = 0;
+    portfolio.Asset = 0;
+    portfolio.Gain = 0;
+    portfolio.GainRate = 0;
+    portfolio.Cost = 0;
+    for(let pos of pos_map.values()){
+        if(pos.Code == 'CASH'){
+            portfolio.Cash = pos.Current_Amount;
+        }
+        else{
+            portfolio.Asset += pos.Current_Amount;
+        }
+        portfolio.Gain += pos.Gain;
+        portfolio.Cost += pos.Cost_Amount;
+    }
+    portfolio.Gain_Rate = (portfolio.Cash + portfolio.Asset)/portfolio.Cost;
+    console.log('portfolio, total %s, cash %s, asset %s, cost %s, gain %s, gain rate %s',
+            portfolio.Cash + portfolio.Asset,
+            portfolio.Cash, portfolio.Asset, portfolio.Cost, portfolio.Gain, portfolio.Gain_Rate);
+    return Q.ninvoke(portfolio,'save');
 }
 
 

@@ -6,7 +6,9 @@ table(class='stocksTable table table-responsive table-condensed table-striped ta
       th 总资产
       th 现金
       th 资产
-      th 总盈亏
+      th 成本
+      th 盈亏
+      th 盈亏率
       th 操作
   tbody(id='portfolios_table')
     tr(class='templateRow',hidden)
@@ -28,7 +30,13 @@ table(class='stocksTable table table-responsive table-condensed table-striped ta
           span(id='p_asset') 0
       td
         div(class='open',style='cursor: pointer; ',title='点击打开')
+          span(id='p_cost') 0
+      td
+        div(class='open',style='cursor: pointer; ',title='点击打开')
           span(id='p_gain') 0
+      td
+        div(class='open',style='cursor: pointer; ',title='点击打开')
+          span(id='p_gain_rate') 0
       td
         div(style='cursor: pointer; ',title='点击操作')
           select(id='p_action',class="c-select",onchange='portfolio_action(this)')      

@@ -65,12 +65,20 @@ function updatepositionRow(row,position,id) {
    	$("#p_code"        , row).text(position.Code          );
    	$("#p_name"        , row).text(position.Name          );
    	$("#p_volume"      , row).text(position.Volume        );
-   	$("#p_price"       , row).text(position.Current_Price );
-   	$("#p_amount"      , row).text(position.Current_Amount);
-   	$("#p_price_cost"  , row).text(position.Cost_Price    );
-   	$("#p_amount_cost" , row).text(position.Cost_Amount   );
-   	$("#p_gain"        , row).text(position.Gain          );
-   	$("#p_gain_rate"   , row).text(position.Gain_Rate     );
+   	$("#p_price"       , row).text(position.Current_Price .toFixed(4));
+   	$("#p_amount"      , row).text(position.Current_Amount.toFixed(4));
+   	$("#p_price_cost"  , row).text(position.Cost_Price    .toFixed(4));
+   	$("#p_amount_cost" , row).text(position.Cost_Amount   .toFixed(4));
+   	$("#p_gain"        , row).text(position.Gain          .toFixed(4));
+   	$("#p_gain_rate"   , row).text(position.Gain_Rate     .toFixed(4));
+    if(position.Gain>0){
+        $("#p_gain", row).parent().addClass("gain_up").removeClass("gain_down");
+        $("#p_gain_rate", row).parent().addClass("gain_up").removeClass("gain_down");
+    }
+    else{
+        $("#p_gain", row).parent().addClass("gain_down").removeClass("gain_up");
+        $("#p_gain_rate", row).parent().addClass("gain_down").removeClass("gain_up");
+    }
 }
 
 function getPositions(){

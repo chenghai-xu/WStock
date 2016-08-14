@@ -9,6 +9,11 @@ var columns = {
     Current_Position : { type : 'text'},
     Current_NV_Time  : { type : 'date', time     : true   },
     Order_Time       : { type : 'date', time     : true   },
+    Cash             : { type : 'number'},
+    Asset            : { type : 'number'},
+    Gain             : { type : 'number'},
+    Gain_Rate        : { type : 'number'},
+    Cost             : { type : 'number'}
 };
 
 var methods_m = {
@@ -19,7 +24,11 @@ var methods_m = {
             Name             : this.Name            ,
             Current_Position : this.Current_Position,
             Current_NV_Time  : this.Current_NV_Time ,
-            Order_Time       : this.Order_Time 
+            Cash             : this.Cash      ,
+            Asset            : this.Asset,
+            Gain             : this.Gain,
+            Gain_Rate        : this.Gain_Rate, 
+            Cost             : this.Cost
         };
     }
 };

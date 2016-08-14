@@ -11,6 +11,7 @@ module.exports = {
 	create : create,
 	get    : get,
 	save   : save,
+    save_array : save_array,
 	new_order: new_order,
 	insert_netvalue:insert_netvalue,
 	recalc_value: recalc_value,
@@ -56,7 +57,7 @@ function share_change(order, netvalues,idx){
 	else if(order.Type == 'REDEEM'){
 		netvalues[idx].Share -= parseFloat(order.Amount / netvalues[idx-1].Value);
 	}
-	debug('current netvalue, Date: %s, share: %s', netvalues[idx].Date, netvalues[idx].Share);
+	debug('update netvalue, Date: %s, share: %s', netvalues[idx].Date, netvalues[idx].Share);
 	for(var i=idx+1; i<netvalues.length; i++) netvalues[i].Share = netvalues[i-1].Share;
 
 }
@@ -95,6 +96,7 @@ function calculate_netvalue(quotes_db,pos_map,pos_control,netvalues,beg_idx){
 				if(historicals.length>0){
 					hist_map.set(historicals[0].Code,historicals);
 					console.log('get historical, time',moment().toISOString(),'map size',hist_map.size);
+					console.log('historical begin ',historicals[0].Date,'end ',historicals[historicals.length-1].Date);
 				}
 				deferred.resolve();
 			});
@@ -117,12 +119,11 @@ function calculate_netvalue(quotes_db,pos_map,pos_control,netvalues,beg_idx){
 	result
 	.then(function (){
 		console.log('get all historicals, time',moment().toISOString(), 'map size ', hist_map.size);
-		console.log('calculate netvalue, netvalue index %s, netvalue length %s', beg_idx,netvalues.length);
-		debugger;
 		do_calculate_netvalue(hist_map,pos_map,netvalues,beg_idx);
 		ret_deferred.resolve(); 
 	})
 	.catch(function (error){
+		console.log('error, ',error);
 		ret_deferred.resolve(); 
 	})
 	.done();
@@ -130,21 +131,23 @@ function calculate_netvalue(quotes_db,pos_map,pos_control,netvalues,beg_idx){
 }
 
 function do_calculate_netvalue(hist_map,pos_map,netvalues,beg_idx){
-	console.log('calculate netvalue, netvalue index %s, netvalue length %s', beg_idx,netvalues.length);
+    console.log('calculate netvalue, netvalue index %s, netvalue length %s', beg_idx,netvalues.length);
 	var asset = 0;
-	for(var i= beg_idx; i<netvalues.length;i++)
+    var end = netvalues.length - beg_idx;
+    var idx = beg_idx;
+	for(var i = 0; i < end; i++)
 	{
 		for(let pos of pos_map.values()){
 			if(pos.Code == 'CASH'){
-				asset += pos.Volume;
+				asset += pos.Current_Amount;
 				continue;
 			}
 			var hist = hist_map.get(pos.Code);
 			asset += pos.Volume * hist[i].Close;
 		}
-		netvalues[i].Total = asset;
-		netvalues[i].Value = parseFloat(netvalues[i].Total/netvalues[i].Share);
-		console.log(i,netvalues[i].Date,netvalues[i].Value,netvalues[i].Share,netvalues[i].Total);
+        idx = i + beg_idx;
+		netvalues[idx].Total = asset;
+		netvalues[idx].Value = parseFloat(netvalues[idx].Total/netvalues[idx].Share);
 		asset = 0;
 	}
 }
@@ -305,6 +308,42 @@ function save(items_TB, params, callback) {
             });
 
         });
+}
+
+function save_array(database, netvalues){
+    console.log('save netvalue array');
+    var ret_deferred = Q.defer(); 
+    Q.ninvoke(database.driver, 'execQuery','BEGIN TRANSACTION;')
+    .then(function(){
+        var deferred = Q.defer();
+        var result = Q();
+        netvalues.forEach(function(netvalue){
+            result = result.then(function(){
+                return netvalue.save();
+            });
+        });
+        result
+        .then(function(){
+            deferred.resolve();
+        })
+        .catch(function (error){
+            console.log('error, ',error);
+        })
+        .done();
+        return deferred.promise;
+    })
+    .then(function(){
+        return Q.ninvoke(database.driver, 'execQuery','COMMIT TRANSACTION;');
+    })
+    .then(function(){
+        ret_deferred.resolve();
+    })
+    .catch(function (error){
+        console.log('error, ',error);
+        ret_deferred.resolve();
+    })
+    .done();
+	return ret_deferred.promise;
 }
 
 

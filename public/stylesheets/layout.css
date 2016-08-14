@@ -5,3 +5,9 @@
 table.stocksTable div.delete {
   background:url("/images/delete.png");
 }
+.gain_up {
+  background-color: red;
+}
+.gain_down {
+  background-color: green;
+}

@@ -443,32 +443,6 @@ function bind(app){
 
 function data_mantain(){
 	console.log('mantain portfolio begin');
-	quotes_db.models.historical.find({Code: 'SH000001'},['Date', 'A']).only('Date').run(function(err, historicals){
-		var dates = [];
-		for(var i=0; i< historicals.length;i++){
-			dates.push(historicals[i].Date);
-		}
-		database.models.portfolio.find().each(function(portfolio){
-		//database.models.portfolio.find({uid:'703898a9-bc99-4254-b00c-a65a05d72bdb'}).limit(1).run(function(err,portfolios){
-			var portfolio = portfolios[0];
-			database.models.order.find({Portfolio: portfolio.uid}).order('Time').run(function(err,orders){
-				if(err) throw err;
-				if(orders.length<1) return;
-				database.models.position.find({Portfolio: portfolio.uid},function(err,positions){
-					if(err) throw err;
-					database.models.netvalue.find({Portfolio: portfolio.uid}).order('Date').run(function(err,netvalues){
-						if(err) throw err;
-						data_mantain_each(orders,positions,netvalues,dates);
-					});
-
-				});
-			});
-		});
-	});
-}
-
-function data_mantain_seq(){
-	console.log('mantain portfolio begin');
 	var hfind = Q.nbind(quotes_db.models.historical.find,quotes_db.models.historical);
 	var pfind = Q.nbind(database.models.portfolio.find,database.models.portfolio);
 	var ofind = Q.nbind(database.models.order.find,database.models.order);
@@ -488,14 +462,15 @@ function data_mantain_seq(){
 	})
 	.then(function (all_portfolios){
 		portfolios = all_portfolios;
-		console.log('here we get portfolios, ',portfolios.length);
+		console.log('get all portfolios, ',portfolios.length);
 		//get orders.
 		var loop = function(i){
 			return function(){
 				var deferred = Q.defer(); 
 				var result= ofind({Portfolio: portfolios[i].uid});
-				result.then(function(orders){
-					console.log('get orders for portfolio ',i);
+				result
+                .then(function(orders){
+					console.log('get orders for portfolio: ',portfolios[i].uid);
 					if(orders.length<1){
 						console.log('orders length < 1, just return.');
 						return deferred.resolve();
@@ -504,23 +479,35 @@ function data_mantain_seq(){
 					var netvalues = null;
 					pos_find({Portfolio: portfolios[i].uid})
 					.then(function(pst){
-						console.log('get positions for portfolio ',i);
+						console.log('get positions for portfolio: ',portfolios[i].uid);
 						positions = pst;
 						return ntv_find({Portfolio: portfolios[i].uid});
 					})
 					.then(function(ntv){
-						console.log('get netvalues for portfolio ',i);
+						console.log('get netvalues for portfolio: ',portfolios[i].uid);
 						netvalues = ntv;
 						return data_mantain_each(orders,positions,netvalues,dates);
 					})
+					.then(function (pos_map){
+						console.log('update for portfolio: ',portfolios[i].uid);
+                        return control.portfolio.update_position(portfolios[i],pos_map);
+                    })
 					.then(function (){
 						deferred.resolve();
-					})
-				        .done();
-				}).done();
+                    })
+                    .catch(function (error){
+                        console.log('error, ',error);
+						deferred.resolve();
+                    }).done();
+                })
+                .catch(function (error){
+                    console.log('error, ',error);
+                    deferred.resolve();
+                }).done();
 				return deferred.promise;
 			};
 		};
+
 		var task = [];
 		for(var i=0; i< portfolios.length; i++){
 			task.push(loop(i));
@@ -533,24 +520,30 @@ function data_mantain_seq(){
 		var ret_deferred = Q.defer();
 		result
 		.then(function (){
-			console.log('process all orders, for all portfolios');
+			console.log('process all orders for all portfolios');
 			ret_deferred.resolve(); 
 		})
 		.catch(function (error){
+		    console.log('error, ',error);
 			ret_deferred.resolve(); 
-		})
-		.done();
+		}).done();
 		return ret_deferred.promise;
 
 	})
 	.then(function (){
-		console.log('here we are update');
-	})
-	.done();
+		console.log('all portfolios are updated.');
+    })
+    .catch(function (error){
+        console.log('error, ',error);
+    })
+    .done();
 }
 
 function data_mantain_each(orders,current_positions,current_netvalues,dates){
-	console.log('mantain portfolio: %s',orders[0].Portfolio);
+	var ret_deferred = Q.defer();
+    orders = orders.sort(control.order.sort);
+    current_netvalues.sort(control.netvalue.sort);
+    console.log('process all orders for portfolio: %s',orders[0].Portfolio);
 	console.log('current positions: code, volume');
 	var pos_map = new Map();
 	for(var i=0; i< current_positions.length; i++){
@@ -558,52 +551,60 @@ function data_mantain_each(orders,current_positions,current_netvalues,dates){
 		console.log('%s, %s',pos.Code, pos.Volume);
 		pos_map.set(pos.Code,pos);
 	}
-	console.log('lastest value of current netvalue: Share, Value, Total',
+	console.log('lastest value of netvalue: Date %s, Share %s, Value %s, Total %s',
+			current_netvalues[current_netvalues.length-1].Date,
 			current_netvalues[current_netvalues.length-1].Share,
 			current_netvalues[current_netvalues.length-1].Value,
 			current_netvalues[current_netvalues.length-1].Total);
 
 	var first_order_day = moment(orders[0].Time).format('YYYY-MM-DD');
-	var begin_day = null;
-	var new_netvalues = [];
-	console.log('first order date', first_order_day);
-	for(var i=dates.length-1; i>=0; i--){
-		if(moment(dates[i]).diff(first_order_day)<0){
-			new_netvalues.push(control.netvalue.new_netvalue(null,dates[i]));
-			begin_day = dates[i];
-			break;
-		}
-		new_netvalues.push(control.netvalue.new_netvalue(null,dates[i]));
-	}
-	if(new_netvalues.length<1) {
-		console.log('mantain, portfolio: %s, can not find the day before the first order, stop.',orders[0].Portfolio);
-		return;
-	}
-	new_netvalues.sort(control.netvalue.sort);
-	console.log('netvalue begin date: ', new_netvalues[0].Date);
-	console.log('netvalue end date: ', new_netvalues[new_netvalues.length-1].Date);
+    console.log('we need to clear the netvalue history share from the first order day:',first_order_day);
+    for(var i=current_netvalues.length - 1; i>=0; i--){
+        current_netvalues[i].Share = 0;
+        if(current_netvalues[i].Date == first_order_day){
+            break;
+        }
+    }
 
 	var pos_map = new Map();
 	pos_map.set(cash_code, control.position.new_position(cash_code,cash_name));
-	var ret_deferred = Q.defer();
-	var result = do_data_mantain_each_seq(orders,pos_map,new_netvalues,dates);
-	result.then(function(){
-		console.log('mantain result, portfolio: %s',orders[0].Portfolio);
+	var result = do_data_mantain_each(orders,pos_map,current_netvalues,dates);
+	result
+    .then(function(){
+		console.log('calculate portfolio: %s',orders[0].Portfolio);
 		console.log('positions: code, volume');
 		for(let pos of pos_map.values()){
 			console.log('%s, %s',pos.Code, pos.Volume);
+            pos.Portfolio = orders[0].Portfolio;
 		}
-		console.log('last netvalue: Share, Value, Total',
-			new_netvalues[new_netvalues.length-1].Share,
-			new_netvalues[new_netvalues.length-1].Value,
-			new_netvalues[new_netvalues.length-1].Total);
-		ret_deferred.resolve();
-	});
+		console.log('update position');
+        return control.position.calculate_current(quotes_db,pos_map)
+        .then(function(){
+            control.position.save_or_create(database,pos_map);
+        });
+        
+    })
+    .then(function(){
+		console.log('last netvalue: Date %s, Share %s, Value %s, Total %s',
+			current_netvalues[current_netvalues.length-1].Date,
+			current_netvalues[current_netvalues.length-1].Share,
+			current_netvalues[current_netvalues.length-1].Value,
+			current_netvalues[current_netvalues.length-1].Total);
+		console.log('save netvalues');
+        return control.netvalue.save_array(database,current_netvalues);
+    })
+    .then(function(){
+		ret_deferred.resolve(pos_map);
+    })
+    .catch(function (error){
+		ret_deferred.resolve(pos_map);
+        console.log('error, ',error);
+    }).done();
 	return ret_deferred.promise;
 
 }
 
-function do_data_mantain_each_seq(orders,pos_map,new_netvalues,dates){
+function do_data_mantain_each(orders,pos_map,new_netvalues,dates){
 	var new_netvalues_idx = new Map();
 	for(var i=0; i< new_netvalues.length; i++){
 		new_netvalues_idx.set(new_netvalues[i].Date, i);
@@ -612,16 +613,16 @@ function do_data_mantain_each_seq(orders,pos_map,new_netvalues,dates){
 	var loop = function(i){
 		return function(){
 			var deferred = Q.defer(); 
-			console.log('mantain, portfolio: %s, order: %s in %s ',orders[i].Portfolio, i, orders.length);
+			console.log('portfolio: %s, order: %s in %s ',orders[i].Portfolio, i + 1, orders.length);
 			var order_day = moment(orders[i].Time).format('YYYY-MM-DD');
 			if(!trade_day.has(order_day)){
-				console.log('mantain, portfolio: %s, can not trade order: %s, time: %s \n',
-						orders[i].Portfolio, orders[i].uid, orders[i].Time, 'result:  order time is not a trade day: ',order_day);
-				deferred.reject(new Error('mantain, portfolio: %s, can not trade order: %s, time: %s order time is not a trade day\n'));
+				console.log('portfolio: %s, can not trade order: %s, time: %s',
+						orders[i].Portfolio, orders[i].uid, orders[i].Time, '. Order time is not a trade day: ',order_day);
+				deferred.reject(new Error('portfolio: %s, can not trade order: %s, time: %s order time is not a trade day'));
 			}
 			var result=control.position.do_trade_each(pos_map,orders[i]);
-			console.log('mantain, portfolio: %s, trade order: %s, time: %s \n',
-					orders[i].Portfolio, orders[i].uid, orders[i].Time, 'result: ', result);
+			console.log('portfolio: %s, trade order: %s, time: %s',
+					orders[i].Portfolio, orders[i].uid, orders[i].Time, ', result: ', result);
 			if(!result.flag){
 				orders[i].Flag = 0;
 				deferred.reject(new Error(result));
@@ -629,17 +630,22 @@ function do_data_mantain_each_seq(orders,pos_map,new_netvalues,dates){
 			orders[i].Flag = 2;
 			var idx = new_netvalues_idx.get(order_day);
 			if(idx == 0 || !idx){
-				console.log('mantain, portfolio: %s, can not trade order: %s, time: %s \n',
+				console.log('portfolio: %s, can not trade order: %s, time: %s',
 						orders[i].Portfolio, orders[i].uid, orders[i].Time, 'result:  cant not find prope netvalue day.');
 				deferred.reject(new Error('can not trade order, cant not find prope netvalue day.'));
 			}
 			control.netvalue.share_change(orders[i], new_netvalues,idx);
 			var result=control.netvalue.calculate_netvalue(quotes_db,pos_map,control.position,new_netvalues,idx);
-			result.then(function(){
-				console.log('mantain, portfolio: %s, order: %s, time: %s, net_value are all updated \n',
+			result
+            .then(function(){
+				console.log('portfolio: %s, order: %s, time: %s, netvalues are all updated \n',
 					orders[i].Portfolio, orders[i].uid, orders[i].Time);
 				deferred.resolve();
-			});
+			})
+            .catch(function (error){
+                console.log('error ', error);
+				deferred.resolve();
+            }).done();
 			return deferred.promise;
 		};
 	};
@@ -660,9 +666,9 @@ function do_data_mantain_each_seq(orders,pos_map,new_netvalues,dates){
 		ret_deferred.resolve(); 
 	})
 	.catch(function (error){
+		console.log('error ', error);
 		ret_deferred.resolve(); 
-	})
-	.done();
+	}).done();
 	return ret_deferred.promise;
 }
 
@@ -670,8 +676,7 @@ module.exports = {
   models: database.models,
   init: init,
   bind: bind,
-  //mantain: data_mantain,
-  mantain: data_mantain_seq,
+  mantain: data_mantain,
   router:router,
   event: event
 };
